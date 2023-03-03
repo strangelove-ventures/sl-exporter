@@ -1,0 +1,13 @@
+metrics:
+  # Metric name
+  cosmos_asset_exponent:
+    type: "gauge"
+    description: "Exponent value for a Cosmos asset"
+    # Metric labels
+    labels: [ "chain", "denom" ]
+    # Static samples
+    samples:
+      - labels: [ "injective", "inj" ]
+        value: 18
+      - labels: [ "cosmos-4", "uatom" ]
+        value: 6
