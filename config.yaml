@@ -7,7 +7,12 @@ metrics:
     labels: [ "chain", "denom" ]
     # Static samples
     samples:
-      - labels: [ "injective", "inj" ]
-        value: 18
-      - labels: [ "cosmos-4", "uatom" ]
-        value: 6
+      - { labels: [ "agoric-emerynet-5", "ubld" ], value: 6 }
+      - { labels: [ "axelar-dojo-1", "uaxl" ], value: 6 }
+      - { labels: [ "cosmoshub-4", "uatom" ], value: 6 }
+      - { labels: [ "crescent-1", "ucre" ], value: 6 }
+      - { labels: [ "injective-1", "inj" ], value: 18 }
+      - { labels: [ "juno-1", "ujuno" ], value: 6 }
+      - { labels: [ "osmosis-1", "uosmo" ], value: 6 }
+      - { labels: [ "sommelier-3", "usomm" ], value: 6 }
+      - { labels: [ "theta-testnet-001", "uatom" ], value: 6 }

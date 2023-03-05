@@ -47,6 +47,9 @@ docker buildx build --platform linux/amd64 -t sl-exporter .
 docker run --rm -p 9100:9100 sl-exporter --bind=0.0.0.0:9100
 ```
 
+> The docker image does not contain a config file. Mount one and if necessary point to it using `--config` flag.
+> This is an [example config](./config.yaml)
+
 ## Release
 
 Simply push any tag to this repository
