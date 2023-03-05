@@ -8,7 +8,10 @@ metadata metrics like `cosmos_asset_exponent`.
 ## Usage
 
 ```shell
-./sl_exporter --bind=0.0.0.0:9100 --config=config.yaml
+# Build
+go build -o exporter main.go
+# Run
+./exporter --bind=0.0.0.0:9100 --config=config.yaml
 ```
 
 ## Metrics
@@ -20,9 +23,7 @@ metadata metrics like `cosmos_asset_exponent`.
 ## Todo
 
 - [ ] Other Go stuff !?
-- [ ] Dockerize
 - [ ] Lint n format
-- [ ] CI to crete release?
 
 ## More use cases
 
@@ -34,3 +35,18 @@ metadata metrics like `cosmos_asset_exponent`.
 - USD value of a cosmos asset to attach it to metrics
 
   This allows creating financial panels
+
+---
+
+## Docker
+
+```shell
+# Build
+docker buildx build --platform linux/amd64 -t sl-exporter .
+# Run
+docker run --rm -p 9100:9100 sl-exporter --bind=0.0.0.0:9100
+```
+
+## Release
+
+Simply push any tag to this repository
