@@ -20,10 +20,6 @@ go build -o exporter main.go
 
   Enriches Relayer metrics (e.g. `cosmos_relayer_wallet_balance`) to dynamically create Grafana panels and alerts.
 
-## Todo
-
-- [ ] Other Go stuff !?
-- [ ] Lint n format
 
 ## More use cases
 
