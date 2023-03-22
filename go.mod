@@ -1,13 +1,12 @@
 module sl-exporter
 
-go 1.19
+go 1.20
 
 require (
-	github.com/ghodss/yaml v1.0.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/prometheus/common v0.37.0
 	github.com/sirupsen/logrus v1.9.0
-	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -19,5 +18,4 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

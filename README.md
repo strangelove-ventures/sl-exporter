@@ -44,7 +44,7 @@ go build -o exporter main.go
 # Build
 docker buildx build --platform linux/amd64 -t sl-exporter .
 # Run
-docker run --rm -p 9100:9100 sl-exporter --bind=0.0.0.0:9100
+docker run --rm -p 9100:9100 -v $(pwd)/config.yaml:/config.yaml sl-exporter --bind=0.0.0.0:9100
 ```
 
 > The docker image does not contain a config file. Mount one and if necessary point to it using `--config` flag.

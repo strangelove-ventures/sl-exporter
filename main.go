@@ -2,122 +2,107 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
+	"github.com/prometheus/common/version"
+	"io"
 	"net/http"
 	"os"
-	"strings"
 
-	"github.com/ghodss/yaml"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
-var config Config
+type Config struct {
+	Metrics map[string]Metric `yaml:"metrics"`
+}
+
+type Metric struct {
+	Type        string   `yaml:"type"`
+	Description string   `yaml:"description"`
+	Labels      []string `yaml:"labels"`
+	Samples     []Sample `yaml:"samples"`
+}
+
+type Sample struct {
+	Labels []string `yaml:"labels"`
+	Value  float64  `yaml:"value"`
+}
 
 const (
 	collector = "sl_exporter"
 )
 
 func main() {
-	var err error
 	var configFile, bind string
-	// =====================
-	// Get OS parameter
-	// =====================
 	flag.StringVar(&configFile, "config", "config.yaml", "configuration file")
 	flag.StringVar(&bind, "bind", "localhost:9100", "bind")
 	flag.Parse()
 
-	// =====================
-	// Load config & yaml
-	// =====================
-	var b []byte
-	if b, err = ioutil.ReadFile(configFile); err != nil {
-		log.Errorf("Failed to read config file: %s", err)
-		os.Exit(1)
+	config, err := readConfig(configFile)
+	if err != nil {
+		log.Fatalf("Error reading config file %s: %v", configFile, err)
 	}
 
-	// Load yaml
-	if err := yaml.Unmarshal(b, &config); err != nil {
-		log.Errorf("Failed to load config: %s", err)
-		os.Exit(1)
-	}
+	// Create registry
+	registry := prometheus.NewRegistry()
 
-	// ========================
-	// Register handler
-	// ========================
-	promReg := prometheus.NewRegistry()
+	// Register build_info metric
+	if err := registry.Register(version.NewCollector(collector)); err != nil {
+		log.Fatalf("Error registering build_info : %v", err)
+	}
 	log.Infof("Register version collector - %s", collector)
-	promReg.Register(version.NewCollector(collector))
-	promReg.Register(&QueryCollector{})
 
-	// Register http handler
-	log.Infof("HTTP handler path - %s", "/metrics")
+	registerStaticMetrics(config, registry)
 
-	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		h := promhttp.HandlerFor(promReg, promhttp.HandlerOpts{})
-		h.ServeHTTP(w, r)
-	})
-
-	// start server
-	log.Infof("Starting http server - %s", bind)
+	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
+	log.Infof("Starting Prometheus metrics server - %s", bind)
 	if err := http.ListenAndServe(bind, nil); err != nil {
-		log.Errorf("Failed to start http server: %s", err)
+		log.Fatalf("Failed to start http server: %v", err)
 	}
 }
 
-type Sample struct {
-	Labels []string
-	Value  float64
+func readConfig(filename string) (*Config, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	// Load yaml
+	var config Config
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		return nil, err
+	}
+	return &config, nil
 }
 
-type Metric struct {
-	Name        string
-	Type        string
-	Description string
-	Labels      []string
-	metricDesc  *prometheus.Desc
-	Samples     []Sample
-}
-
-// Config config structure
-type Config struct {
-	Metrics map[string]Metric
-}
-
-// QueryCollector exporter
-type QueryCollector struct{}
-
-// Describe prometheus describe
-func (e *QueryCollector) Describe(ch chan<- *prometheus.Desc) {
+func registerStaticMetrics(config *Config, registry *prometheus.Registry) {
+	// Iterate config metrics
 	for metricName, metric := range config.Metrics {
-		// Todo (nour): do we need namespace
-		metric.metricDesc = prometheus.NewDesc(
-			prometheus.BuildFQName("", "", metricName),
-			metric.Description,
-			metric.Labels, nil,
-		)
-		config.Metrics[metricName] = metric
-		log.Infof("metric description for \"%s\" registerd", metricName)
-	}
-}
+		var collector prometheus.Collector
 
-// Collect prometheus collect
-func (e *QueryCollector) Collect(ch chan<- prometheus.Metric) {
-
-	// Execute each queries in metrics
-	for name, metric := range config.Metrics {
-		for _, sample := range metric.Samples {
-			// Add metric
-			switch strings.ToLower(metric.Type) {
-			case "gauge":
-				ch <- prometheus.MustNewConstMetric(metric.metricDesc, prometheus.GaugeValue, sample.Value, sample.Labels...)
-			default:
-				log.Errorf("Fail to add metric for %s: %s is not valid type", name, metric.Type)
-				continue
+		switch metric.Type {
+		case "gauge":
+			gaugeVec := prometheus.NewGaugeVec(
+				// Todo (nour): should we add namespace and subsystem
+				prometheus.GaugeOpts{Name: prometheus.BuildFQName("", "", metricName), Help: metric.Description},
+				metric.Labels,
+			)
+			for _, sample := range metric.Samples {
+				gaugeVec.WithLabelValues(sample.Labels...).Set(sample.Value)
 			}
+			collector = gaugeVec
+		default:
+			log.Fatalf("Unsupported metric type: %s", metric.Type)
 		}
+
+		if err := registry.Register(collector); err != nil {
+			log.Fatalf("Error registering %s: %v", metricName, err)
+		}
+		log.Infof("Register %s collector - %s", metric.Type, metricName)
 	}
 }

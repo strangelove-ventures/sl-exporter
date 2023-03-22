@@ -1,7 +1,7 @@
 # Build the exporter binary
-FROM golang:1.19 as builder
+FROM golang:1.20.2 as builder
 
-ARG VERSION=1.0.0
+ARG VERSION=0.0.0
 ARG REVISION=abcdef
 
 WORKDIR /workspace
