@@ -1,6 +1,9 @@
 # Build the exporter binary
 FROM golang:1.19 as builder
 
+ARG VERSION=1.0.0
+ARG REVISION=abcdef
+
 WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -13,7 +16,11 @@ RUN go mod download
 COPY *.go .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o exporter .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags "\
+    -X github.com/prometheus/common/version.Version=${VERSION} \
+    -X github.com/prometheus/common/version.Revision=${REVISION} \
+    " -a -o exporter .
 
 # Use distroless as minimal base image to package the exporter binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
