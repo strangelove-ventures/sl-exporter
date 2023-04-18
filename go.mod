@@ -1,4 +1,4 @@
-module github.com/strangelove-ventures/sl-exporter
+module github.com/strangelove-ventures/sl_exporter
 
 go 1.20
 
