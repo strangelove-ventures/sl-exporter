@@ -54,7 +54,7 @@ func rpcMetrics(metric Metric, metricName string) *prometheus.GaugeVec {
 				log.Errorf("Error fetching height for rpc %s: %v", rpc, err)
 				continue
 			}
-			gaugeVec.WithLabelValues(chain.Name, urlHost(rpc)).Set(value)
+			gaugeVec.WithLabelValues(chain.Name, urlHost(rpc)).Set(float64(value))
 		}
 	}
 	return gaugeVec
@@ -68,11 +68,4 @@ func urlHost(rpc string) string {
 		return rpc
 	}
 	return parsedURL.Hostname()
-}
-
-func fetchRPCNodeHeight(rpcURL string) (float64, error) {
-	// Implement the logic to fetch node height from the rpcURL
-	// ...
-
-	return 0, nil
 }
