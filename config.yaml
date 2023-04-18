@@ -1,7 +1,7 @@
 metrics:
   # Metric name
   cosmos_asset_exponent:
-    type: "gauge"
+    type: "samples"
     description: "Exponent value for a Cosmos asset"
     # Metric labels
     labels: [ "chain", "denom" ]
@@ -16,3 +16,16 @@ metrics:
       - { labels: [ "osmosis-1", "uosmo" ], value: 6 }
       - { labels: [ "sommelier-3", "usomm" ], value: 6 }
       - { labels: [ "theta-testnet-001", "uatom" ], value: 6 }
+  public_rpc_node_height:
+    type: "rpc"
+    description: "Node height of a public RPC node"
+    labels: [ "chain_id", "source" ]
+    chains:
+      - name: agoric-emerynet-5
+        rpcs:
+          - https://agoric-rpc.easy2stake.com
+          - https://agoric-rpc.polkachu.com
+      - name: axelar-dojo-1
+        rpcs:
+          - https://axelar-rpc.quantnode.tech
+          - https://rpc.axelar.bh.rocks
