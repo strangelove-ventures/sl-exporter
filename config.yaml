@@ -1,7 +1,6 @@
 metrics:
   # Metric name
   cosmos_asset_exponent:
-    type: "samples"
     description: "Exponent value for a Cosmos asset"
     # Metric labels
     labels: [ "chain", "denom" ]
@@ -17,7 +16,6 @@ metrics:
       - { labels: [ "sommelier-3", "usomm" ], value: 6 }
       - { labels: [ "theta-testnet-001", "uatom" ], value: 6 }
   public_rpc_node_height:
-    type: "rpc"
     description: "Node height of a public RPC node"
     labels: [ "chain_id", "source" ]
     chains:

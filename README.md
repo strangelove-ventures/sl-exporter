@@ -20,7 +20,6 @@ go build -o exporter main.go
 
   Enriches Relayer metrics (e.g. `cosmos_relayer_wallet_balance`) to dynamically create Grafana panels and alerts.
 
-
 ## More use cases
 
 - Chain current block height
@@ -49,3 +48,11 @@ docker run --rm -p 9100:9100 -v $(pwd)/config.yaml:/config.yaml sl-exporter --bi
 ## Release
 
 Simply push any tag to this repository
+
+# Todos
+
+- Add testing
+- Enable linting on CI
+- Use https://github.com/spf13/viper to simplify loading config and maybe flags as well
+- Use slog for structured logging: https://pkg.go.dev/golang.org/x/exp/slog
+- Load config once and don't recreate the registry

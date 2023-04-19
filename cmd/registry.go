@@ -4,9 +4,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
-	log "github.com/sirupsen/logrus"
 	"net/http"
-	"sync"
 )
 
 const (
@@ -18,29 +16,26 @@ const (
 
 var (
 	metricsRegistry *prometheus.Registry
-	mu              sync.Mutex
 )
 
-func updateRegistry(config *Config) *prometheus.Registry {
+func updateRegistry(config *Config) (*prometheus.Registry, error) {
 	// Create sampleMetrics new registry for the updated metrics
 	newRegistry := prometheus.NewRegistry()
 
 	// Register build_info metric
 	if err := newRegistry.Register(version.NewCollector(collector)); err != nil {
-		log.Errorf("Error registering build_info : %v", err)
-		return nil
+		return nil, err
 	}
 
-	registerMetrics(config, newRegistry)
+	if err := registerMetrics(config, newRegistry); err != nil {
+		return nil, err
+	}
 
-	return newRegistry
+	return newRegistry, nil
 }
 
 func metricsHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mu.Lock()
-		defer mu.Unlock()
-
 		handler := promhttp.HandlerFor(metricsRegistry, promhttp.HandlerOpts{})
 		handler.ServeHTTP(w, r)
 	})

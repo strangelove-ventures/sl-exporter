@@ -14,7 +14,6 @@ type Config struct {
 }
 
 type Metric struct {
-	Type        string          `yaml:"type"`
 	Description string          `yaml:"description"`
 	Labels      []string        `yaml:"labels"`
 	Samples     []Sample        `yaml:"samples,omitempty"`
@@ -31,27 +30,31 @@ type Sample struct {
 	Value  float64  `yaml:"value"`
 }
 
-// flags returns CLI flags
-func flags() (string, time.Duration, string) {
-	var configFile, bind, logLevel string
-	var interval time.Duration
-	flag.StringVar(&configFile, "config", "config.yaml", "configuration file")
-	flag.StringVar(&bind, "bind", "localhost:9100", "bind")
-	flag.DurationVar(&interval, "interval", 15*time.Second, "duration interval")
-	flag.StringVar(&logLevel, "loglevel", "info", "Log level (debug, info, warn, error)")
+type CMDConfig struct {
+	ConfigFile string
+	Bind       string
+	Interval   time.Duration
+	LogLevel   string
+}
+
+var cmdConfig CMDConfig
+
+func init() {
+	flag.StringVar(&cmdConfig.ConfigFile, "config", "config.yaml", "configuration file")
+	flag.StringVar(&cmdConfig.Bind, "bind", "localhost:9100", "bind")
+	flag.DurationVar(&cmdConfig.Interval, "interval", 15*time.Second, "duration interval")
+	flag.StringVar(&cmdConfig.LogLevel, "loglevel", "info", "Log level (debug, info, warn, error)")
 	flag.Parse()
 
-	level, err := log.ParseLevel(logLevel)
+	level, err := log.ParseLevel(cmdConfig.LogLevel)
 	if err != nil {
 		log.Fatalf("Invalid log level: %v", err)
 	}
 	log.SetLevel(level)
 
-	log.Debugf("Config File: %s\n", configFile)
-	log.Debugf("Interval: %s\n", interval)
-	log.Debugf("Bind: %s\n", bind)
-
-	return configFile, interval, bind
+	log.Debugf("Config File: %s\n", cmdConfig.ConfigFile)
+	log.Debugf("Interval: %s\n", cmdConfig.Interval)
+	log.Debugf("Bind: %s\n", cmdConfig.Bind)
 }
 
 // readConfig reads config.yaml from disk

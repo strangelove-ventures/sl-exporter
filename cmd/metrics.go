@@ -1,30 +1,31 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"net/url"
 )
 
 // registerMetrics iterates config metrics and passes them to relevant handler
-func registerMetrics(config *Config, registry *prometheus.Registry) {
+func registerMetrics(config *Config, registry *prometheus.Registry) error {
 	for metricName, metric := range config.Metrics {
 		var collector prometheus.Collector
 
-		switch metric.Type {
-		case "samples":
+		if len(metric.Samples) > 0 {
 			collector = sampleMetrics(metric, metricName)
-		case "rpc":
+		} else if len(metric.Chains) > 0 {
 			collector = rpcMetrics(metric, metricName)
-		default:
-			log.Fatalf("Unsupported metric type: %s", metric.Type)
+		} else {
+			return fmt.Errorf("unsupported metric: %s", metricName)
 		}
 
 		if err := registry.Register(collector); err != nil {
-			log.Fatalf("Error registering %s: %v", metricName, err)
+			return fmt.Errorf("error registering %s: %v", metricName, err)
 		}
-		log.Infof("Register %s collector - %s", metric.Type, metricName)
+		log.Infof("Register collector - %s", metricName)
 	}
+	return nil
 }
 
 // sampleMetrics handles static gauge samples
