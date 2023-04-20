@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
+
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"net/url"
 )
 
 // registerMetrics iterates config metrics and passes them to relevant handler
