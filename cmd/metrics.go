@@ -22,7 +22,7 @@ func registerMetrics(config *Config, registry *prometheus.Registry) error {
 		}
 
 		if err := registry.Register(collector); err != nil {
-			return fmt.Errorf("error registering %s: %v", metricName, err)
+			return fmt.Errorf("error registering %s: %w", metricName, err)
 		}
 		log.Infof("Register collector - %s", metricName)
 	}
