@@ -4,7 +4,6 @@ import (
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"io"
 	"os"
 	"time"
 )
@@ -59,16 +58,10 @@ func init() {
 
 // readConfig reads config.yaml from disk
 func readConfig(filename string) (*Config, error) {
-	file, err := os.Open(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	// Load yaml
 	var config Config
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return nil, err
