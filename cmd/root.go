@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 )
 
 func Execute() {
@@ -16,19 +17,16 @@ func Execute() {
 		ticker := time.NewTicker(cmdConfig.Interval)
 		defer ticker.Stop()
 
-		for {
-			select {
-			case <-ticker.C:
-				config, err := readConfig(cmdConfig.ConfigFile)
-				if err != nil {
-					log.Errorf("Error reading config file %s: %v", cmdConfig.ConfigFile, err)
-					continue
-				}
-				if updatedRegistry, err := updateRegistry(config); err != nil {
-					log.Errorf("error updating registery: %v", err)
-				} else {
-					metricsRegistry = updatedRegistry
-				}
+		for range ticker.C {
+			config, err := readConfig(cmdConfig.ConfigFile)
+			if err != nil {
+				log.Errorf("Error reading config file %s: %v", cmdConfig.ConfigFile, err)
+				continue
+			}
+			if updatedRegistry, err := updateRegistry(config); err != nil {
+				log.Errorf("error updating registry: %v", err)
+			} else {
+				metricsRegistry = updatedRegistry
 			}
 		}
 	}()

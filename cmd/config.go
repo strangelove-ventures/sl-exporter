@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"flag"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"os"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {

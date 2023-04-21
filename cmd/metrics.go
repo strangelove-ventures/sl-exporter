@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
+
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"net/url"
 )
 
 // registerMetrics iterates config metrics and passes them to relevant handler
@@ -21,7 +22,7 @@ func registerMetrics(config *Config, registry *prometheus.Registry) error {
 		}
 
 		if err := registry.Register(collector); err != nil {
-			return fmt.Errorf("error registering %s: %v", metricName, err)
+			return fmt.Errorf("error registering %s: %w", metricName, err)
 		}
 		log.Infof("Register collector - %s", metricName)
 	}
