@@ -23,3 +23,6 @@ testbin/*
 
 # Binary
 exporter
+
+# Created by air - live reload tool
+/tmp
