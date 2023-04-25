@@ -3,7 +3,6 @@ package cmd
 import (
 	"flag"
 	"os"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -33,7 +32,6 @@ type Sample struct {
 type CMDConfig struct {
 	ConfigFile string
 	Bind       string
-	Interval   time.Duration
 	LogLevel   string
 }
 
@@ -42,7 +40,6 @@ var cmdConfig CMDConfig
 func init() {
 	flag.StringVar(&cmdConfig.ConfigFile, "config", "config.yaml", "configuration file")
 	flag.StringVar(&cmdConfig.Bind, "bind", "localhost:9100", "bind")
-	flag.DurationVar(&cmdConfig.Interval, "interval", 15*time.Second, "duration interval")
 	flag.StringVar(&cmdConfig.LogLevel, "loglevel", "info", "Log level (debug, info, warn, error)")
 	flag.Parse()
 
@@ -53,7 +50,6 @@ func init() {
 	log.SetLevel(level)
 
 	log.Debugf("Config File: %s\n", cmdConfig.ConfigFile)
-	log.Debugf("Interval: %s\n", cmdConfig.Interval)
 	log.Debugf("Bind: %s\n", cmdConfig.Bind)
 }
 
