@@ -26,3 +26,6 @@ exporter
 
 # Created by air - live reload tool
 /tmp
+
+# For local development
+config.yaml
