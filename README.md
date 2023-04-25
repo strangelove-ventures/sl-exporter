@@ -43,7 +43,7 @@ docker run --rm -p 9100:9100 -v $(pwd)/config.yaml:/config.yaml sl-exporter --bi
 ```
 
 > The docker image does not contain a config file. Mount one and if necessary point to it using `--config` flag.
-> This is an [example config](./config.yaml)
+> This is an [example config](./config.example.yaml)
 
 ## Release
 
