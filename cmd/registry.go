@@ -15,11 +15,7 @@ const (
 	subsystem = ""
 )
 
-var (
-	metricsRegistry *prometheus.Registry
-)
-
-func updateRegistry(config *Config) (*prometheus.Registry, error) {
+func buildRegistry(config *Config) (*prometheus.Registry, error) {
 	// Create sampleMetrics new registry for the updated metrics
 	newRegistry := prometheus.NewRegistry()
 
@@ -35,9 +31,9 @@ func updateRegistry(config *Config) (*prometheus.Registry, error) {
 	return newRegistry, nil
 }
 
-func metricsHandler() http.Handler {
+func metricsHandler(reg *prometheus.Registry) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handler := promhttp.HandlerFor(metricsRegistry, promhttp.HandlerOpts{})
+		handler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 		handler.ServeHTTP(w, r)
 	})
 }
