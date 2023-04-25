@@ -19,6 +19,18 @@ go build -o exporter main.go
 - `cosmos_asset_exponent{chain, denom}`
 
   Enriches Relayer metrics (e.g. `cosmos_relayer_wallet_balance`) to dynamically create Grafana panels and alerts.
+- 
+## Local Development
+
+Run this once after you've cloned the repo:
+```shell
+make setup
+```
+
+To continually live reload changes while developing:
+```shell
+make watch
+```
 
 ## More use cases
 
