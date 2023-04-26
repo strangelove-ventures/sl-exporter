@@ -2,36 +2,21 @@ package cmd
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
 
 func Execute() {
-	// Initialize metricsRegistry
-	metricsRegistry = prometheus.NewRegistry()
+	config, err := readConfig(cmdConfig.ConfigFile)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	registry, err := buildRegistry(config)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	// Start background goroutine to re-evaluate the config and update the registry at `interval`
-	go func() {
-		ticker := time.NewTicker(cmdConfig.Interval)
-		defer ticker.Stop()
-
-		for range ticker.C {
-			config, err := readConfig(cmdConfig.ConfigFile)
-			if err != nil {
-				log.Errorf("Error reading config file %s: %v", cmdConfig.ConfigFile, err)
-				continue
-			}
-			if updatedRegistry, err := updateRegistry(config); err != nil {
-				log.Errorf("error updating registry: %v", err)
-			} else {
-				metricsRegistry = updatedRegistry
-			}
-		}
-	}()
-
-	http.Handle("/metrics", metricsHandler())
+	http.Handle("/metrics", metricsHandler(registry))
 	log.Infof("Starting Prometheus metrics server - %s", cmdConfig.Bind)
 	if err := http.ListenAndServe(cmdConfig.Bind, nil); err != nil {
 		log.Fatalf("Failed to start http server: %v", err)
