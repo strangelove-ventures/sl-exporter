@@ -41,7 +41,5 @@ func parseConfig(cfg *Config) error {
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
-	if err := viper.Unmarshal(cfg); err != nil {
-		return err
-	}
+	return viper.Unmarshal(cfg)
 }
