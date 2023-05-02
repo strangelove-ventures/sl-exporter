@@ -9,7 +9,7 @@ import (
 )
 
 // registerMetrics iterates config metrics and passes them to relevant handler
-func registerMetrics(config *Config, registry *prometheus.Registry) error {
+func registerMetrics(config Config, registry *prometheus.Registry) error {
 	for metricName, metric := range config.Metrics {
 		var collector prometheus.Collector
 

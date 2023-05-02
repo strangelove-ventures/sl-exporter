@@ -15,7 +15,7 @@ const (
 	subsystem = ""
 )
 
-func buildRegistry(config *Config) (*prometheus.Registry, error) {
+func buildRegistry(config Config) (*prometheus.Registry, error) {
 	// Create sampleMetrics new registry for the updated metrics
 	newRegistry := prometheus.NewRegistry()
 
