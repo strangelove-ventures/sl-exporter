@@ -10,6 +10,8 @@ import (
 )
 
 func TestBuildStatic(t *testing.T) {
+	t.Parallel()
+
 	t.Run("happy path", func(t *testing.T) {
 		gauges := []StaticGauge{
 			{
@@ -47,6 +49,10 @@ gauge_1{chain="cosmoshub-4",denom="uatom"} 2
 # TYPE gauge_2 gauge
 gauge_2 3`
 		require.Equal(t, want, strings.TrimSpace(r.Body.String()))
+	})
+
+	t.Run("zero state", func(t *testing.T) {
+		require.Empty(t, BuildStatic(nil))
 	})
 
 	t.Run("invalid labels", func(t *testing.T) {
