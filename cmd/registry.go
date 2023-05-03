@@ -32,8 +32,5 @@ func buildRegistry(config Config) (*prometheus.Registry, error) {
 }
 
 func metricsHandler(reg *prometheus.Registry) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
-		handler.ServeHTTP(w, r)
-	})
+	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 }
