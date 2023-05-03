@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -32,5 +33,5 @@ func buildRegistry(config Config) (*prometheus.Registry, error) {
 }
 
 func metricsHandler(reg *prometheus.Registry) http.Handler {
-	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{Timeout: 60 * time.Second})
 }
