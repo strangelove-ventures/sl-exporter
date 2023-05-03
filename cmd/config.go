@@ -21,12 +21,6 @@ type Sample struct {
 	Value  float64  `yaml:"value"`
 }
 
-type CMDConfig struct {
-	ConfigFile string
-	Bind       string
-	LogLevel   string
-}
-
 type Config struct {
 	File     string
 	BindAddr string
