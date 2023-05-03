@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/strangelove-ventures/sl-exporter/metrics"
 )
 
 func Execute() {
@@ -23,6 +24,8 @@ func Execute() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	// Register static metrics
+	registry.MustRegister(metrics.BuildStatic(cfg.Static.Gauges)...)
 
 	http.Handle("/metrics", metricsHandler(registry))
 	log.Infof("Starting Prometheus metrics server - %s", cfg.BindAddr)

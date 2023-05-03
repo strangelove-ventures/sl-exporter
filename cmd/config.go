@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/viper"
+	"github.com/strangelove-ventures/sl-exporter/metrics"
 )
 
 type Metric struct {
@@ -26,6 +27,11 @@ type Config struct {
 	BindAddr string
 	LogLevel string
 
+	Static struct {
+		Gauges []metrics.StaticGauge
+	}
+
+	// Deprecated
 	Metrics map[string]Metric
 }
 
