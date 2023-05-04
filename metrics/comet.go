@@ -65,7 +65,7 @@ type CometStatus struct {
 	} `json:"result"`
 }
 
-// Status finds the current Tendermint status.
+// Status finds the current CometBFT RPC status.
 func (client *CometClient) Status(ctx context.Context, rpcURL *url.URL) (CometStatus, error) {
 	var status CometStatus
 	rpcURL.Path = "status"
