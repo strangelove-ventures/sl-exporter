@@ -30,8 +30,7 @@ type Config struct {
 		Gauges []metrics.StaticGauge
 	}
 
-	// Deprecated
-	Metrics map[string]Metric
+	Cosmos []metrics.CosmosChain
 }
 
 func parseConfig(cfg *Config) error {
