@@ -6,6 +6,7 @@ static:
       description: "Exponent value for a Cosmos asset" # Optional but recommended
       labels: [ "chain", "denom" ]
       samples:
+        # In the below, the labels are the label values.
         - { labels: [ "agoric-emerynet-5", "ubld" ], value: 6 }
         - { labels: [ "axelar-dojo-1", "uaxl" ], value: 6 }
         - { labels: [ "cosmoshub-4", "uatom" ], value: 6 }
