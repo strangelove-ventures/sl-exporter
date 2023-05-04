@@ -1,13 +1,12 @@
-metrics:
-  # Metric name
-  cosmos_asset_exponent:
-    description: "Exponent value for a Cosmos asset"
-    # Metric labels
-    labels: [ "chain", "denom" ]
-    # Static samples
-    samples:
+# Static exposes metric samples with static labels and values.
+static:
+  gauges:
+    - name: "cosmos_asset_exponent" # Required
+      description: "Exponent value for a Cosmos asset" # Optional but recommended
+      labels: [ "chain", "denom" ]
+      samples:
       - { labels: [ "agoric-emerynet-5", "ubld" ], value: 6 }
-      - { labels: [ "axelar-dojo-1", "uaxl" ], value: 6 }
+      - { labels: [ "axelar-dojo-1", "uaxl" ], value: 6}
       - { labels: [ "cosmoshub-4", "uatom" ], value: 6 }
       - { labels: [ "crescent-1", "ucre" ], value: 6 }
       - { labels: [ "injective-1", "inj" ], value: 18 }
@@ -15,6 +14,8 @@ metrics:
       - { labels: [ "osmosis-1", "uosmo" ], value: 6 }
       - { labels: [ "sommelier-3", "usomm" ], value: 6 }
       - { labels: [ "theta-testnet-001", "uatom" ], value: 6 }
+
+metrics:
   public_rpc_node_height:
     description: "Node height of a public RPC node"
     labels: [ "chain_id", "source" ]

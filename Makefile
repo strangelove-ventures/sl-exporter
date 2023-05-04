@@ -13,3 +13,6 @@ setup: ## Setup the project for local development
 watch: ## Watch for changes to build and run the server. For local development only.
 	@go run github.com/cosmtrek/air
 
+.PHONY: test
+test: ## Run unit tests
+	@go test -race -short -cover -timeout=60s ./...

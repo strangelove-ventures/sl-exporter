@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -15,7 +16,7 @@ const (
 	subsystem = ""
 )
 
-func buildRegistry(config *Config) (*prometheus.Registry, error) {
+func buildRegistry(config Config) (*prometheus.Registry, error) {
 	// Create sampleMetrics new registry for the updated metrics
 	newRegistry := prometheus.NewRegistry()
 
@@ -32,8 +33,5 @@ func buildRegistry(config *Config) (*prometheus.Registry, error) {
 }
 
 func metricsHandler(reg *prometheus.Registry) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
-		handler.ServeHTTP(w, r)
-	})
+	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{Timeout: 60 * time.Second})
 }
