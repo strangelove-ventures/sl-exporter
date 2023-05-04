@@ -25,7 +25,6 @@ type Sample struct {
 type Config struct {
 	File     string
 	BindAddr string
-	LogLevel string
 
 	Static struct {
 		Gauges []metrics.StaticGauge
