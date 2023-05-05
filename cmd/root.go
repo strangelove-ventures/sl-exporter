@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 	"net/http"
+	"os"
+	"os/signal"
 	"runtime"
 	"time"
 
@@ -54,18 +56,40 @@ func Execute() {
 	}
 	jobs = append(jobs, metrics.ToJobs(rpcJobs)...)
 
-	ctx := context.Background()
+	// Configure error group with signal handling.
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+	eg, ctx := errgroup.WithContext(ctx)
 
 	// Create worker pool to poll data
 	pool := metrics.NewWorkerPool(jobs, cfg.NumWorkers)
-	go pool.Start(ctx)
 
-	var eg errgroup.Group
+	// Configure server
+	const timeout = 60 * time.Second
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{Timeout: timeout}))
+	server := &http.Server{
+		ReadTimeout:  timeout,
+		WriteTimeout: timeout,
+		Addr:         cfg.BindAddr,
+		Handler:      mux,
+	}
+
+	// Start goroutines
 	eg.Go(func() error {
-		// Start the server
-		http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{Timeout: 60 * time.Second}))
 		log.Infof("Starting Prometheus metrics server - %s", cfg.BindAddr)
-		return http.ListenAndServe(cfg.BindAddr, nil)
+		return server.ListenAndServe()
+	})
+	eg.Go(func() error {
+		<-ctx.Done()
+		// Give server 5 seconds to shutdown gracefully.
+		cctx, ccancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer ccancel()
+		return server.Shutdown(cctx)
+	})
+	eg.Go(func() error {
+		pool.Start(ctx)
+		return nil
 	})
 	eg.Go(func() error {
 		pool.Wait()
