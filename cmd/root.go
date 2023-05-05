@@ -13,8 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
-	log "github.com/sirupsen/logrus"
 	"github.com/strangelove-ventures/sl-exporter/metrics"
+	"golang.org/x/exp/slog"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -30,10 +30,24 @@ func Execute() {
 	flag.StringVar(&cfg.File, "config", "config.yaml", "Path to configuration file")
 	flag.StringVar(&cfg.BindAddr, "bind", ":9100", "Address to bind")
 	flag.IntVar(&cfg.NumWorkers, "workers", runtime.NumCPU()*25, "Number of background workers that poll for data")
+	flag.StringVar(&cfg.LogLevel, "log-level", "info", "Log level (debug, info, warn, error)")
+	flag.StringVar(&cfg.LogFormat, "log-format", "text", "Log format (text, json)")
 	flag.Parse()
 
+	// Setup logging
+	var programLevel = new(slog.LevelVar)
+	if err := programLevel.UnmarshalText([]byte(cfg.LogLevel)); err != nil {
+		logFatal("Failed to parse log level", err)
+	}
+	if cfg.LogFormat == "json" {
+		slog.SetDefault(slog.New(slog.HandlerOptions{Level: programLevel}.NewJSONHandler(os.Stderr)))
+	} else {
+		slog.SetDefault(slog.New(slog.HandlerOptions{Level: programLevel}.NewTextHandler(os.Stderr)))
+	}
+
+	// Parse config
 	if err := parseConfig(&cfg); err != nil {
-		log.Fatalf("Failed to parse config: %v", err)
+		logFatal("Failed to parse config", err)
 	}
 
 	// Initialize prometheus registry
@@ -53,7 +67,7 @@ func Execute() {
 	cometClient := metrics.NewCometClient(httpClient)
 	rpcJobs, err := metrics.NewRPCJobs(cosmos, cometClient, cfg.Cosmos)
 	if err != nil {
-		log.Fatalf("Failed to create RPC jobs: %v", err)
+		logFatal("Failed to create RPC jobs", err)
 	}
 	jobs = append(jobs, toJobs(rpcJobs)...)
 
@@ -78,7 +92,7 @@ func Execute() {
 
 	// Start goroutines
 	eg.Go(func() error {
-		log.Infof("Starting Prometheus metrics server - %s", cfg.BindAddr)
+		slog.Info("Starting Prometheus metrics server", "addr", cfg.BindAddr)
 		return server.ListenAndServe()
 	})
 	eg.Go(func() error {
@@ -96,10 +110,15 @@ func Execute() {
 	err = eg.Wait()
 	switch {
 	case errors.Is(err, http.ErrServerClosed):
-		log.Infoln("Server shutdown")
+		slog.Info("Server shutdown")
 	case err != nil:
-		log.Fatalln(err)
+		logFatal("Fatal error", err)
 	}
+}
+
+func logFatal(msg string, err error) {
+	slog.Error(msg, "error", err)
+	os.Exit(1)
 }
 
 func toJobs[T metrics.Job](jobs []T) []metrics.Job {
