@@ -24,6 +24,7 @@ cosmos:
     # RPCs, if present, periodically polls for CometBFT RPC data such as block height. Currently, polls every 5s.
     rpcs:
       - url: https://axelar-rpc.quantnode.tech
+        interval: 10s # Optional. Defaults to 5s.
       - url: https://rpc.axelar.bh.rocks
         # Not supported yet, but data structure allows extensions to support authenticating with RPC providers.
         # headers:
