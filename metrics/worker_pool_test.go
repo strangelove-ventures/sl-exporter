@@ -59,7 +59,7 @@ func TestWorkerPool(t *testing.T) {
 		}
 
 		pool := NewWorkerPool(jobs, 5)
-		pool.Do(ctx)
+		pool.Start(ctx)
 		pool.Wait()
 
 		for _, job := range jobs {
@@ -86,7 +86,7 @@ func TestWorkerPool(t *testing.T) {
 		}
 
 		pool := NewWorkerPool(jobs, 5)
-		pool.Do(ctx)
+		pool.Start(ctx)
 		pool.Wait()
 
 		for _, job := range jobs {

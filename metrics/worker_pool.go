@@ -15,6 +15,14 @@ type Job interface {
 	Run(ctx context.Context) error
 }
 
+func ToJobs[T Job](jobs []T) []Job {
+	result := make([]Job, len(jobs))
+	for i := range jobs {
+		result[i] = jobs[i]
+	}
+	return result
+}
+
 // WorkerPool runs jobs at intervals.
 type WorkerPool struct {
 	jobs    []*workerJob
@@ -33,17 +41,19 @@ func NewWorkerPool(jobs []Job, numWorkers int) *WorkerPool {
 	for i := range jobs {
 		trackJobs[i] = &workerJob{Job: jobs[i]}
 	}
-	return &WorkerPool{
-		workers: numWorkers,
-		jobs:    trackJobs,
+	var pool WorkerPool
+	for i := 0; i < numWorkers; i++ {
+		pool.wg.Add(1)
 	}
+	pool.workers = numWorkers
+	pool.jobs = trackJobs
+	return &pool
 }
 
-// Do continuously runs jobs at intervals until the context is canceled.
-func (w *WorkerPool) Do(ctx context.Context) {
+// Start continuously runs jobs at intervals until the context is canceled.
+func (w *WorkerPool) Start(ctx context.Context) {
 	ch := make(chan Job)
 	for i := 0; i < w.workers; i++ {
-		w.wg.Add(1)
 		go w.doWork(ctx, ch)
 	}
 
@@ -73,5 +83,5 @@ func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Job) {
 	}
 }
 
-// Wait blocks until Do's context is cancelled. Callers should wait to ensure all goroutines exit.
+// Wait blocks until Start's context is cancelled. Callers should wait to ensure all goroutines exit.
 func (w *WorkerPool) Wait() { w.wg.Wait() }
