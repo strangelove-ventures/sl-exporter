@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slog"
 )
 
 type Job interface {
@@ -69,7 +69,7 @@ func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Job, wg *sync.WaitGro
 	defer wg.Done()
 	for job := range ch {
 		if err := job.Run(ctx); err != nil {
-			logrus.WithError(err).WithField("job", job.String()).Error("Job failed")
+			slog.Warn("Job failed", "job", job.String(), "error", err)
 		}
 	}
 }
