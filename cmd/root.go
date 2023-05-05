@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"net/http"
 	"os"
@@ -54,14 +55,14 @@ func Execute() {
 	if err != nil {
 		log.Fatalf("Failed to create RPC jobs: %v", err)
 	}
-	jobs = append(jobs, metrics.ToJobs(rpcJobs)...)
+	jobs = append(jobs, toJobs(rpcJobs)...)
 
 	// Configure error group with signal handling.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 	eg, ctx := errgroup.WithContext(ctx)
 
-	// Create worker pool to poll data
+	// Add all jobs to worker pool
 	pool := metrics.NewWorkerPool(jobs, cfg.NumWorkers)
 
 	// Configure server
@@ -91,12 +92,20 @@ func Execute() {
 		pool.Start(ctx)
 		return nil
 	})
-	eg.Go(func() error {
-		pool.Wait()
-		return nil
-	})
 
-	if err := eg.Wait(); err != nil {
-		log.Fatal(err)
+	err = eg.Wait()
+	switch {
+	case errors.Is(err, http.ErrServerClosed):
+		log.Infoln("Server shutdown")
+	case err != nil:
+		log.Fatalln(err)
 	}
+}
+
+func toJobs[T metrics.Job](jobs []T) []metrics.Job {
+	result := make([]metrics.Job, len(jobs))
+	for i := range jobs {
+		result[i] = jobs[i]
+	}
+	return result
 }
