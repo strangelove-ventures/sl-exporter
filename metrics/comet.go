@@ -66,7 +66,7 @@ type CometStatus struct {
 }
 
 // Status finds the current CometBFT RPC status.
-func (client *CometClient) Status(ctx context.Context, rpcURL *url.URL) (CometStatus, error) {
+func (client *CometClient) Status(ctx context.Context, rpcURL url.URL) (CometStatus, error) {
 	var status CometStatus
 	rpcURL.Path = "status"
 	req, err := http.NewRequest("GET", rpcURL.String(), nil)

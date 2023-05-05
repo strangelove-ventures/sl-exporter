@@ -21,7 +21,7 @@ func TestCosmos(t *testing.T) {
 		u, err := url.Parse("http://cosmos.rpc.example.com:26657?timeout=10s")
 		require.NoError(t, err)
 
-		cosmos.SetNodeHeight("cosmoshub-4", u, 12345)
+		cosmos.SetNodeHeight("cosmoshub-4", *u, 12345)
 
 		h := metricsHandler(reg)
 		r := httptest.NewRecorder()
@@ -43,7 +43,7 @@ public_rpc_node_height{chain="cosmoshub-4",source="cosmos.rpc.example.com"} 1234
 		u, err := url.Parse("http://rpc.example.com:26657/v1/cosmos")
 		require.NoError(t, err)
 
-		cosmos.SetNodeHeight("cosmoshub-4", u, 12345)
+		cosmos.SetNodeHeight("cosmoshub-4", *u, 12345)
 
 		h := metricsHandler(reg)
 		r := httptest.NewRecorder()

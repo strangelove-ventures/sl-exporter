@@ -11,11 +11,11 @@ import (
 
 type mockCosmosMetrics struct {
 	NodeHeightChain  string
-	NodeHeightRPCURL *url.URL
+	NodeHeightRPCURL url.URL
 	NodeHeight       float64
 }
 
-func (m *mockCosmosMetrics) SetNodeHeight(chain string, rpcURL *url.URL, height float64) {
+func (m *mockCosmosMetrics) SetNodeHeight(chain string, rpcURL url.URL, height float64) {
 	m.NodeHeightChain = chain
 	m.NodeHeightRPCURL = rpcURL
 	m.NodeHeight = height
@@ -23,10 +23,10 @@ func (m *mockCosmosMetrics) SetNodeHeight(chain string, rpcURL *url.URL, height 
 
 type mockRPCClient struct {
 	StubStatus CometStatus
-	StatusURL  *url.URL
+	StatusURL  url.URL
 }
 
-func (m *mockRPCClient) Status(ctx context.Context, rpcURL *url.URL) (CometStatus, error) {
+func (m *mockRPCClient) Status(ctx context.Context, rpcURL url.URL) (CometStatus, error) {
 	if ctx == nil {
 		panic("nil context")
 	}
@@ -70,7 +70,7 @@ func TestRPCJob_Run(t *testing.T) {
 		err = job.Run(ctx)
 		require.NoError(t, err)
 
-		wantURL := &url.URL{Scheme: "http", Host: "rpc.example.com"}
+		wantURL := url.URL{Scheme: "http", Host: "rpc.example.com"}
 		require.Equal(t, wantURL, client.StatusURL)
 
 		require.Equal(t, wantURL, metrics.NodeHeightRPCURL)

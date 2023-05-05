@@ -24,7 +24,7 @@ func NewCosmos() *Cosmos {
 }
 
 // SetNodeHeight records the block height on the public_rpc_node_height gauge.
-func (c *Cosmos) SetNodeHeight(chain string, rpcURL *url.URL, height float64) {
+func (c *Cosmos) SetNodeHeight(chain string, rpcURL url.URL, height float64) {
 	source := rpcURL.Hostname() + rpcURL.Path
 	c.rpcHeightGauge.WithLabelValues(chain, source).Set(height)
 }

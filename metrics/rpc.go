@@ -10,11 +10,11 @@ import (
 
 // CosmosMetrics records metrics for Cosmos chains.
 type CosmosMetrics interface {
-	SetNodeHeight(chain string, rpcURL *url.URL, height float64)
+	SetNodeHeight(chain string, rpcURL url.URL, height float64)
 }
 
 type RPCClient interface {
-	Status(ctx context.Context, rpcURL *url.URL) (CometStatus, error)
+	Status(ctx context.Context, rpcURL url.URL) (CometStatus, error)
 }
 
 // RPCJob is a job that queries CometBFT (former Tendermint) RPC endpoints for data and records various metrics.
@@ -62,7 +62,7 @@ func (job RPCJob) Interval() time.Duration {
 func (job RPCJob) Run(ctx context.Context) error {
 	cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	status, err := job.client.Status(cctx, job.url)
+	status, err := job.client.Status(cctx, *job.url)
 	if err != nil {
 		return fmt.Errorf("query /status: %w", err)
 	}
@@ -70,6 +70,6 @@ func (job RPCJob) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("parse height: %w", err)
 	}
-	job.metrics.SetNodeHeight(job.chain, job.url, height)
+	job.metrics.SetNodeHeight(job.chain, *job.url, height)
 	return nil
 }

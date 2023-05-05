@@ -37,7 +37,7 @@ func TestCometClient_Status(t *testing.T) {
 		u, err := url.Parse("http://rpc.example.com:26657")
 		require.NoError(t, err)
 
-		got, err := client.Status(cctx, u)
+		got, err := client.Status(cctx, *u)
 		require.NoError(t, err)
 		require.Equal(t, "cosmoshub-testnet-fullnode-0", got.Result.NodeInfo.Moniker)
 		require.Equal(t, false, got.Result.SyncInfo.CatchingUp)
@@ -55,7 +55,7 @@ func TestCometClient_Status(t *testing.T) {
 			}, nil
 		}
 
-		_, err := client.Status(context.Background(), &url.URL{})
+		_, err := client.Status(context.Background(), url.URL{})
 		require.Error(t, err)
 		require.EqualError(t, err, "internal server error")
 	})
@@ -66,7 +66,7 @@ func TestCometClient_Status(t *testing.T) {
 			return nil, errors.New("boom")
 		}
 
-		_, err := client.Status(context.Background(), &url.URL{})
+		_, err := client.Status(context.Background(), url.URL{})
 		require.Error(t, err)
 		require.EqualError(t, err, "boom")
 	})
