@@ -29,7 +29,7 @@ func Execute() {
 
 	flag.StringVar(&cfg.File, "config", "config.yaml", "Path to configuration file")
 	flag.StringVar(&cfg.BindAddr, "bind", ":9100", "Address to bind")
-	flag.IntVar(&cfg.NumWorkers, "workers", runtime.NumCPU()*25, "Number of background workers that poll data")
+	flag.IntVar(&cfg.NumWorkers, "workers", runtime.NumCPU()*25, "Number of background workers that poll for data")
 	flag.Parse()
 
 	if err := parseConfig(&cfg); err != nil {
