@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"context"
 	"flag"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -10,15 +12,21 @@ import (
 	"github.com/prometheus/common/version"
 	log "github.com/sirupsen/logrus"
 	"github.com/strangelove-ventures/sl-exporter/metrics"
+	"golang.org/x/sync/errgroup"
 )
 
 const collector = "sl_exporter"
+
+var httpClient = &http.Client{
+	Timeout: 30 * time.Second,
+}
 
 func Execute() {
 	var cfg Config
 
 	flag.StringVar(&cfg.File, "config", "config.yaml", "Path to configuration file")
 	flag.StringVar(&cfg.BindAddr, "bind", ":9100", "Address to bind")
+	flag.IntVar(&cfg.NumWorkers, "workers", runtime.NumCPU()*25, "Number of background workers that poll data")
 	flag.Parse()
 
 	if err := parseConfig(&cfg); err != nil {
@@ -36,10 +44,35 @@ func Execute() {
 	cosmos := metrics.NewCosmos()
 	registry.MustRegister(cosmos.Metrics()...)
 
-	// Start the server
-	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{Timeout: 60 * time.Second}))
-	log.Infof("Starting Prometheus metrics server - %s", cfg.BindAddr)
-	if err := http.ListenAndServe(cfg.BindAddr, nil); err != nil {
-		log.Fatalf("Failed to start http server: %v", err)
+	var jobs []metrics.Job
+
+	// Initialize RPC jobs
+	cometClient := metrics.NewCometClient(httpClient)
+	rpcJobs, err := metrics.NewRPCJobs(cosmos, cometClient, cfg.Cosmos)
+	if err != nil {
+		log.Fatalf("Failed to create RPC jobs: %v", err)
+	}
+	jobs = append(jobs, metrics.ToJobs(rpcJobs)...)
+
+	ctx := context.Background()
+
+	// Create worker pool to poll data
+	pool := metrics.NewWorkerPool(jobs, cfg.NumWorkers)
+	go pool.Start(ctx)
+
+	var eg errgroup.Group
+	eg.Go(func() error {
+		// Start the server
+		http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{Timeout: 60 * time.Second}))
+		log.Infof("Starting Prometheus metrics server - %s", cfg.BindAddr)
+		return http.ListenAndServe(cfg.BindAddr, nil)
+	})
+	eg.Go(func() error {
+		pool.Wait()
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		log.Fatal(err)
 	}
 }

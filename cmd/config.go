@@ -6,8 +6,9 @@ import (
 )
 
 type Config struct {
-	File     string
-	BindAddr string
+	File       string
+	BindAddr   string
+	NumWorkers int
 
 	Static struct {
 		Gauges []metrics.StaticGauge
