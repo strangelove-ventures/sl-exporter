@@ -60,7 +60,6 @@ func TestWorkerPool(t *testing.T) {
 
 		pool := NewWorkerPool(jobs, 5)
 		pool.Start(ctx)
-		pool.Wait()
 
 		for _, job := range jobs {
 			require.Equal(t, int64(1), job.(*mockJob).RunCount)
@@ -87,7 +86,6 @@ func TestWorkerPool(t *testing.T) {
 
 		pool := NewWorkerPool(jobs, 5)
 		pool.Start(ctx)
-		pool.Wait()
 
 		for _, job := range jobs {
 			require.GreaterOrEqual(t, job.(*mockJob).RunCount, int64(1))

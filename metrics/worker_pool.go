@@ -15,19 +15,10 @@ type Job interface {
 	Run(ctx context.Context) error
 }
 
-func ToJobs[T Job](jobs []T) []Job {
-	result := make([]Job, len(jobs))
-	for i := range jobs {
-		result[i] = jobs[i]
-	}
-	return result
-}
-
 // WorkerPool runs jobs at intervals.
 type WorkerPool struct {
 	jobs    []*workerJob
 	workers int
-	wg      sync.WaitGroup
 }
 
 type workerJob struct {
@@ -42,9 +33,6 @@ func NewWorkerPool(jobs []Job, numWorkers int) *WorkerPool {
 		trackJobs[i] = &workerJob{Job: jobs[i]}
 	}
 	var pool WorkerPool
-	for i := 0; i < numWorkers; i++ {
-		pool.wg.Add(1)
-	}
 	pool.workers = numWorkers
 	pool.jobs = trackJobs
 	return &pool
@@ -52,9 +40,11 @@ func NewWorkerPool(jobs []Job, numWorkers int) *WorkerPool {
 
 // Start continuously runs jobs at intervals until the context is canceled.
 func (w *WorkerPool) Start(ctx context.Context) {
+	var wg sync.WaitGroup
 	ch := make(chan Job)
 	for i := 0; i < w.workers; i++ {
-		go w.doWork(ctx, ch)
+		wg.Add(1)
+		go w.doWork(ctx, ch, &wg)
 	}
 
 	for {
@@ -62,6 +52,7 @@ func (w *WorkerPool) Start(ctx context.Context) {
 			select {
 			case <-ctx.Done():
 				close(ch)
+				wg.Wait()
 				return
 			default:
 				if time.Since(job.lastRun) < job.Interval() {
@@ -74,14 +65,11 @@ func (w *WorkerPool) Start(ctx context.Context) {
 	}
 }
 
-func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Job) {
-	defer w.wg.Done()
+func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Job, wg *sync.WaitGroup) {
+	defer wg.Done()
 	for job := range ch {
 		if err := job.Run(ctx); err != nil {
 			logrus.WithError(err).WithField("job", job.String()).Error("Job failed")
 		}
 	}
 }
-
-// Wait blocks until Start's context is cancelled. Callers should wait to ensure all goroutines exit.
-func (w *WorkerPool) Wait() { w.wg.Wait() }
