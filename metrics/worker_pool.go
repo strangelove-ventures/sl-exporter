@@ -38,10 +38,10 @@ func NewWorkerPool(jobs []Job, numWorkers int) (*WorkerPool, error) {
 func (w *WorkerPool) Start(ctx context.Context) {
 	ch := make(chan Job)
 
-	var jobGroup errgroup.Group
+	var produceGroup errgroup.Group
 	for _, job := range w.jobs {
 		job := job
-		jobGroup.Go(func() error {
+		produceGroup.Go(func() error {
 			w.produce(ctx, ch, job)
 			return nil
 		})
@@ -54,7 +54,8 @@ func (w *WorkerPool) Start(ctx context.Context) {
 			return nil
 		})
 	}
-	_ = jobGroup.Wait()
+	// Two errgroups ensure we do not write to a closed channel. So wait for producers to finish first.
+	_ = produceGroup.Wait()
 	close(ch)
 	_ = workerGroup.Wait()
 }
