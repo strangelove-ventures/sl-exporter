@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 type mockJob struct {
@@ -40,9 +41,9 @@ func (m *mockJob) Run(ctx context.Context) error {
 }
 
 func TestWorkerPool(t *testing.T) {
-	t.Parallel()
 
 	t.Run("happy path", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -67,6 +68,7 @@ func TestWorkerPool(t *testing.T) {
 	})
 
 	t.Run("variable intervals", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
