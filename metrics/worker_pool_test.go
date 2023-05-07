@@ -40,7 +40,6 @@ func (m *mockJob) Run(ctx context.Context) error {
 }
 
 func TestWorkerPool(t *testing.T) {
-
 	t.Run("happy path", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
