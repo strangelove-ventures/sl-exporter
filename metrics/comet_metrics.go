@@ -18,7 +18,7 @@ func NewComet() *Comet {
 				Name: prometheus.BuildFQName(Namespace, Subsystem, "public_rpc_node_height"),
 				Help: "Node height of a public RPC node",
 			},
-			[]string{"chain", "source"}, // rpc height labels
+			[]string{"chain_id", "source"}, // rpc height labels
 		),
 	}
 }

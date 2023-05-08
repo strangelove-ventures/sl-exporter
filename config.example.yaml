@@ -19,8 +19,8 @@ static:
 
 # Gather and export metrics for Cosmos chains.
 cosmos:
-  # Required. Recommended value is the canonical chain id, but can be any arbitrary string to identify the cosmos chain.
-  - chain: cosmoshub-4
+  # Required. The canonical chain id.
+  - chainID: cosmoshub-4
     # If present, periodically polls for CometBFT (formerly Tendermint) data such as block height.
     rpc:
       - url: https://cosmos-rpc.polkachu.com

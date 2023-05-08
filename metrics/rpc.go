@@ -19,7 +19,7 @@ type RPCClient interface {
 
 // RPCJob is a job that queries CometBFT (former Tendermint) RPC endpoints for data and records various metrics.
 type RPCJob struct {
-	chain    string
+	chainID  string
 	client   RPCClient
 	interval time.Duration
 	metrics  CometMetrics
@@ -35,7 +35,7 @@ func NewRPCJobs(metrics CometMetrics, client RPCClient, chains []CosmosChain) ([
 				return nil, err
 			}
 			jobs = append(jobs, RPCJob{
-				chain:    chain.Chain,
+				chainID:  chain.ChainID,
 				client:   client,
 				interval: rpc.Interval,
 				metrics:  metrics,
@@ -70,6 +70,6 @@ func (job RPCJob) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("parse height: %w", err)
 	}
-	job.metrics.SetNodeHeight(job.chain, *job.url, height)
+	job.metrics.SetNodeHeight(job.chainID, *job.url, height)
 	return nil
 }
