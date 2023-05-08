@@ -10,6 +10,9 @@ type Config struct {
 	BindAddr   string
 	NumWorkers int
 
+	LogLevel  string
+	LogFormat string
+
 	Static struct {
 		Gauges []metrics.StaticGauge
 	}
