@@ -29,7 +29,7 @@ type RPCJob struct {
 func NewRPCJobs(metrics CometMetrics, client RPCClient, chains []CosmosChain) ([]RPCJob, error) {
 	var jobs []RPCJob
 	for _, chain := range chains {
-		for _, rpc := range chain.RPCs {
+		for _, rpc := range chain.RPC {
 			u, err := url.Parse(rpc.URL)
 			if err != nil {
 				return nil, err
