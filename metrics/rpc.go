@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// CosmosMetrics records metrics for Cosmos chains.
-type CosmosMetrics interface {
+// CometMetrics records metrics for CometBFT-based chains.
+type CometMetrics interface {
 	SetNodeHeight(chain string, rpcURL url.URL, height float64)
 }
 
@@ -22,11 +22,11 @@ type RPCJob struct {
 	chain    string
 	client   RPCClient
 	interval time.Duration
-	metrics  CosmosMetrics
+	metrics  CometMetrics
 	url      *url.URL
 }
 
-func NewRPCJobs(metrics CosmosMetrics, client RPCClient, chains []CosmosChain) ([]RPCJob, error) {
+func NewRPCJobs(metrics CometMetrics, client RPCClient, chains []CosmosChain) ([]RPCJob, error) {
 	var jobs []RPCJob
 	for _, chain := range chains {
 		for _, rpc := range chain.RPCs {

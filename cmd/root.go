@@ -58,7 +58,7 @@ func Execute() {
 	registry.MustRegister(metrics.BuildStatic(cfg.Static.Gauges)...)
 
 	// Register cosmos chain metrics
-	cosmos := metrics.NewCosmos()
+	cosmos := metrics.NewComet()
 	registry.MustRegister(cosmos.Metrics()...)
 
 	var jobs []metrics.Job

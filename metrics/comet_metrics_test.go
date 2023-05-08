@@ -15,7 +15,7 @@ func TestCosmos(t *testing.T) {
 
 	t.Run("happy path", func(t *testing.T) {
 		reg := prometheus.NewRegistry()
-		cosmos := NewCosmos()
+		cosmos := NewComet()
 		reg.MustRegister(cosmos.Metrics()...)
 
 		u, err := url.Parse("http://cosmos.rpc.example.com:26657?timeout=10s")
@@ -36,7 +36,7 @@ public_rpc_node_height{chain="cosmoshub-4",source="cosmos.rpc.example.com"} 1234
 
 	t.Run("rpc url with path", func(t *testing.T) {
 		reg := prometheus.NewRegistry()
-		cosmos := NewCosmos()
+		cosmos := NewComet()
 		reg.MustRegister(cosmos.Metrics()...)
 
 		// Some RPC nodes, like Strangelove's Voyager API, use one hostname and different paths for different chains.
