@@ -1,30 +1,31 @@
 # Static exposes metric samples with static labels and values.
 static:
+  # Gauges exports gauges with static labels and values via samples.
   gauges:
     - name: "cosmos_asset_exponent" # Required
       description: "Exponent value for a Cosmos asset" # Optional but recommended
       labels: [ "chain", "denom" ]
       samples:
-      - { labels: [ "agoric-emerynet-5", "ubld" ], value: 6 }
-      - { labels: [ "axelar-dojo-1", "uaxl" ], value: 6}
-      - { labels: [ "cosmoshub-4", "uatom" ], value: 6 }
-      - { labels: [ "crescent-1", "ucre" ], value: 6 }
-      - { labels: [ "injective-1", "inj" ], value: 18 }
-      - { labels: [ "juno-1", "ujuno" ], value: 6 }
-      - { labels: [ "osmosis-1", "uosmo" ], value: 6 }
-      - { labels: [ "sommelier-3", "usomm" ], value: 6 }
-      - { labels: [ "theta-testnet-001", "uatom" ], value: 6 }
+        # In the below, the labels are the label values.
+        - { labels: [ "agoric-emerynet-5", "ubld" ], value: 6 }
+        - { labels: [ "axelar-dojo-1", "uaxl" ], value: 6 }
+        - { labels: [ "cosmoshub-4", "uatom" ], value: 6 }
+        - { labels: [ "crescent-1", "ucre" ], value: 6 }
+        - { labels: [ "injective-1", "inj" ], value: 18 }
+        - { labels: [ "juno-1", "ujuno" ], value: 6 }
+        - { labels: [ "osmosis-1", "uosmo" ], value: 6 }
+        - { labels: [ "sommelier-3", "usomm" ], value: 6 }
+        - { labels: [ "theta-testnet-001", "uatom" ], value: 6 }
 
-metrics:
-  public_rpc_node_height:
-    description: "Node height of a public RPC node"
-    labels: [ "chain_id", "source" ]
-    chains:
-      - name: agoric-emerynet-5
-        rpcs:
-          - https://agoric-rpc.easy2stake.com
-          - https://agoric-rpc.polkachu.com
-      - name: axelar-dojo-1
-        rpcs:
-          - https://axelar-rpc.quantnode.tech
-          - https://rpc.axelar.bh.rocks
+# Cosmos metrics gather and export metrics for Cosmos chains.
+cosmos:
+  # Required. Recommended value is the canonical chain id, but can be any arbitrary string to identify the cosmos chain.
+  - chain: axelar-dojo-1
+    # RPCs, if present, periodically polls for CometBFT RPC data such as block height. Currently, polls every 5s.
+    rpcs:
+      - url: https://axelar-rpc.quantnode.tech
+        interval: 10s # Optional. Defaults to 5s.
+      - url: https://rpc.axelar.bh.rocks
+        # Not supported yet, but data structure allows extensions to support authenticating with RPC providers.
+        # headers:
+        #  X-API-KEY: my-api-key

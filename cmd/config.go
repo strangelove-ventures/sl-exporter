@@ -5,34 +5,16 @@ import (
 	"github.com/strangelove-ventures/sl-exporter/metrics"
 )
 
-type Metric struct {
-	Description string          `yaml:"description"`
-	Labels      []string        `yaml:"labels"`
-	Samples     []Sample        `yaml:"samples,omitempty"`
-	Chains      []ChainWithRPCs `yaml:"chains,omitempty"`
-}
-
-type ChainWithRPCs struct {
-	Name string   `yaml:"name"`
-	RPCs []string `yaml:"rpcs"`
-}
-
-type Sample struct {
-	Labels []string `yaml:"labels"`
-	Value  float64  `yaml:"value"`
-}
-
 type Config struct {
-	File     string
-	BindAddr string
-	LogLevel string
+	File       string
+	BindAddr   string
+	NumWorkers int
 
 	Static struct {
 		Gauges []metrics.StaticGauge
 	}
 
-	// Deprecated
-	Metrics map[string]Metric
+	Cosmos []metrics.CosmosChain
 }
 
 func parseConfig(cfg *Config) error {
