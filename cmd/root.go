@@ -77,7 +77,10 @@ func Execute() {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// Add all jobs to worker pool
-	pool := metrics.NewWorkerPool(jobs, cfg.NumWorkers)
+	pool, err := metrics.NewWorkerPool(jobs, cfg.NumWorkers)
+	if err != nil {
+		logFatal("Failed to create worker pool", err)
+	}
 
 	// Configure server
 	const timeout = 60 * time.Second

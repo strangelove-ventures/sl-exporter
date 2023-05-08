@@ -8,6 +8,7 @@ require (
 	github.com/prometheus/common v0.42.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.1
+	go.uber.org/goleak v1.2.1
 	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
 	golang.org/x/sync v0.2.0
 )
