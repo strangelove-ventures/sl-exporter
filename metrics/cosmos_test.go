@@ -55,7 +55,7 @@ sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4",source="cosmos.api
 	})
 }
 
-func TestCosmos_SetValidatorStatus(t *testing.T) {
+func TestCosmos_SetValJailStatus(t *testing.T) {
 	t.Parallel()
 
 	cosmos := NewCosmos()
@@ -66,26 +66,26 @@ func TestCosmos_SetValidatorStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, tt := range []struct {
-		Status    ValStatus
+		Status    JailStatus
 		WantValue int
 	}{
-		{Status: ValStatusActive, WantValue: 0},
-		{Status: ValStatusJailed, WantValue: 1},
-		{Status: ValStatusTombstoned, WantValue: 1},
+		{Status: JailStatusActive, WantValue: 0},
+		{Status: JailStatusJailed, WantValue: 1},
+		{Status: JailStatusTombstoned, WantValue: 2},
 	} {
 		cosmos.SetValJailStatus("cosmoshub-4", "cosmosvalcons123", *u, tt.Status)
-		const wantInfo = `
-# HELP sl_exporter_cosmos_val_jailed_status Whether a validator is active, jailed, or tombstoned.
-# TYPE sl_exporter_cosmos_val_jailed_status gauge
-`
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
+		const wantInfo = `
+# HELP sl_exporter_cosmos_val_latest_jailed_status 0 if the validator is not jailed. 1 if the validator is jailed. 2 if the validator is tombstoned.
+# TYPE sl_exporter_cosmos_val_latest_jailed_status gauge
+`
 		require.Contains(t, strings.TrimSpace(r.Body.String()), strings.TrimSpace(wantInfo), tt)
 
 		want := fmt.Sprintf(`
-sl_exporter_cosmos_val_jailed_status{address="cosmosvalcons123",chain_id="cosmoshub-4",source="cosmos.api.example.com/v1/cosmos",status="%s"} %d`,
-			tt.Status, tt.WantValue)
+sl_exporter_cosmos_val_latest_jailed_status{address="cosmosvalcons123",chain_id="cosmoshub-4",source="cosmos.api.example.com/v1/cosmos"} %d`,
+			tt.WantValue)
 
 		require.Contains(t, strings.TrimSpace(r.Body.String()), strings.TrimSpace(want), tt)
 	}

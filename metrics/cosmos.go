@@ -8,8 +8,8 @@ import (
 
 // Cosmos records metrics for Cosmos chains
 type Cosmos struct {
-	heightGauge    *prometheus.GaugeVec
-	valStatusGauge *prometheus.GaugeVec
+	heightGauge  *prometheus.GaugeVec
+	valJailGauge *prometheus.GaugeVec
 }
 
 func NewCosmos() *Cosmos {
@@ -22,13 +22,13 @@ func NewCosmos() *Cosmos {
 			// labels
 			[]string{"chain_id", "source"},
 		),
-		valStatusGauge: prometheus.NewGaugeVec(
+		valJailGauge: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: prometheus.BuildFQName(Namespace, CosmosSubsystem, "val_jailed_status"),
-				Help: "Whether a validator is active, jailed, or tombstoned.",
+				Name: prometheus.BuildFQName(Namespace, CosmosValSubsystem, "latest_jailed_status"),
+				Help: "0 if the validator is not jailed. 1 if the validator is jailed. 2 if the validator is tombstoned.",
 			},
 			// labels
-			[]string{"chain_id", "source", "address", "status"},
+			[]string{"chain_id", "source", "address"},
 		),
 	}
 }
@@ -39,30 +39,26 @@ func (c *Cosmos) SetNodeHeight(chain string, restURL url.URL, height float64) {
 	c.heightGauge.WithLabelValues(chain, source).Set(height)
 }
 
-// ValStatus is the status of a validator.
-type ValStatus string
+// JailStatus is the status of a validator.
+type JailStatus int
 
 const (
-	ValStatusActive     ValStatus = "active"
-	ValStatusJailed     ValStatus = "jailed"
-	ValStatusTombstoned ValStatus = "tombstoned"
+	JailStatusActive JailStatus = iota
+	JailStatusJailed
+	JailStatusTombstoned
 )
 
 // SetValJailStatus records the jailed status of a validator. Gauge set to 1 if the validator is jailed or tombstoned.
 // In this context, "active" does not mean part of the validator active set.
-func (c *Cosmos) SetValJailStatus(chain, consaddress string, restURL url.URL, status ValStatus) {
+func (c *Cosmos) SetValJailStatus(chain, consaddress string, restURL url.URL, status JailStatus) {
 	source := restURL.Hostname() + restURL.Path
-	var value float64
-	if status != ValStatusActive {
-		value = 1
-	}
-	c.valStatusGauge.WithLabelValues(chain, source, consaddress, string(status)).Set(value)
+	c.valJailGauge.WithLabelValues(chain, source, consaddress).Set(float64(status))
 }
 
 // Metrics returns all metrics for Cosmos chains to be added to a Prometheus registry.
 func (c *Cosmos) Metrics() []prometheus.Collector {
 	return []prometheus.Collector{
 		c.heightGauge,
-		c.valStatusGauge,
+		c.valJailGauge,
 	}
 }
