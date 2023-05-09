@@ -11,6 +11,14 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+func intervalOrDefault(dur time.Duration) time.Duration {
+	const defaultInterval = 15 * time.Second
+	if dur <= 0 {
+		return defaultInterval
+	}
+	return dur
+}
+
 // CosmosMetrics records metrics for Cosmos chains.
 type CosmosMetrics interface {
 	SetNodeHeight(chain string, rpcURL url.URL, height float64)
@@ -56,10 +64,7 @@ func (job CosmosRestJob) String() string {
 
 // Interval is how often to poll the Endpoint server for data. Defaults to 5s.
 func (job CosmosRestJob) Interval() time.Duration {
-	if job.interval <= 0 {
-		return 5 * time.Second
-	}
-	return job.interval
+	return intervalOrDefault(job.interval)
 }
 
 // Run queries the Endpoint server for data and records various metrics.

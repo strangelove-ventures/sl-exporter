@@ -5,7 +5,13 @@ import "time"
 type CosmosChain struct {
 	ChainID string
 	// Rest are the Cosmos REST (aka LCD) endpoints to poll for data.
-	Rest []Endpoint
+	Rest       []Endpoint
+	Validators []CosmosValidator
+}
+
+type CosmosValidator struct {
+	// The validator's consensus address. Example prefix: cosmosvalcons...
+	ConsAddress string
 }
 
 type Endpoint struct {
