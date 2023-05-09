@@ -73,7 +73,7 @@ func TestCosmos_SetValidatorStatus(t *testing.T) {
 		{Status: ValStatusJailed, WantValue: 1},
 		{Status: ValStatusTombstoned, WantValue: 1},
 	} {
-		cosmos.SetValidatorStatus("cosmoshub-4", "cosmosvalcons123", *u, tt.Status)
+		cosmos.SetValJailStatus("cosmoshub-4", "cosmosvalcons123", *u, tt.Status)
 		const wantInfo = `
 # HELP sl_exporter_cosmos_val_jailed_status Whether a validator is active, jailed, or tombstoned.
 # TYPE sl_exporter_cosmos_val_jailed_status gauge

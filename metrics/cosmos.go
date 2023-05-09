@@ -48,9 +48,9 @@ const (
 	ValStatusTombstoned ValStatus = "tombstoned"
 )
 
-// SetValidatorStatus records the status of a validator. Gauge set to 1 if the validator is jailed or tombstoned.
+// SetValJailStatus records the jailed status of a validator. Gauge set to 1 if the validator is jailed or tombstoned.
 // In this context, "active" does not mean part of the validator active set.
-func (c *Cosmos) SetValidatorStatus(chain, consaddress string, restURL url.URL, status ValStatus) {
+func (c *Cosmos) SetValJailStatus(chain, consaddress string, restURL url.URL, status ValStatus) {
 	source := restURL.Hostname() + restURL.Path
 	var value float64
 	if status != ValStatusActive {
