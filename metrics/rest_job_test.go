@@ -22,12 +22,12 @@ func (m *mockCosmosMetrics) SetNodeHeight(chain string, rpcURL url.URL, height f
 	m.NodeHeight = height
 }
 
-type mockRPCClient struct {
+type mockRestClient struct {
 	StubBlocks map[string]cosmos.Block
 	StatusURL  url.URL
 }
 
-func (m *mockRPCClient) LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error) {
+func (m *mockRestClient) LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error) {
 	if ctx == nil {
 		panic("nil context")
 	}
@@ -35,11 +35,48 @@ func (m *mockRPCClient) LatestBlock(ctx context.Context, baseURL url.URL) (cosmo
 	return m.StubBlocks[baseURL.Hostname()], nil
 }
 
+func TestCosmosRestJob_Interval(t *testing.T) {
+	t.Parallel()
+
+	chains := []CosmosChain{
+		{
+			ChainID: "cosmoshub-4",
+			Rest:    []Endpoint{{URL: "http://cosmos.example.com", Interval: time.Second}, {}},
+		},
+		{
+			ChainID: "akash-1234",
+			Rest:    []Endpoint{{URL: "http://akash.example.com"}},
+		},
+	}
+
+	jobs, err := BuildCosmosRestJobs(nil, nil, chains)
+	require.NoError(t, err)
+
+	require.Equal(t, time.Second, jobs[0].Interval())
+	require.Equal(t, 15*time.Second, jobs[1].Interval())
+}
+
+func TestCosmosRestJob_String(t *testing.T) {
+	t.Parallel()
+
+	chains := []CosmosChain{
+		{
+			ChainID: "cosmoshub-4",
+			Rest:    []Endpoint{{URL: "http://cosmos.example.com", Interval: time.Second}, {}},
+		},
+	}
+
+	jobs, err := BuildCosmosRestJobs(nil, nil, chains)
+	require.NoError(t, err)
+
+	require.Equal(t, "Cosmos REST http://cosmos.example.com", jobs[0].String())
+}
+
 func TestCosmosRestJob_Run(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("happy path", func(t *testing.T) {
-		var client mockRPCClient
+		var client mockRestClient
 		client.StubBlocks = make(map[string]cosmos.Block)
 
 		var blk1 cosmos.Block
@@ -55,7 +92,7 @@ func TestCosmosRestJob_Run(t *testing.T) {
 		chains := []CosmosChain{
 			{
 				ChainID: "cosmoshub-4",
-				Rest:    []Endpoint{{URL: "http://cosmos.example.com", Interval: time.Second}, {}},
+				Rest:    []Endpoint{{URL: "http://cosmos.example.com"}, {}},
 			},
 			{
 				ChainID: "akash-1234",
@@ -70,9 +107,6 @@ func TestCosmosRestJob_Run(t *testing.T) {
 		require.Len(t, jobs, 3)
 
 		job := jobs[0]
-
-		require.Equal(t, "Cosmos REST http://cosmos.example.com", job.String())
-		require.Equal(t, time.Second, job.Interval())
 
 		err = job.Run(ctx)
 		require.NoError(t, err)
@@ -89,21 +123,5 @@ func TestCosmosRestJob_Run(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, float64(54321), metrics.NodeHeight)
 		require.Equal(t, "akash-1234", metrics.NodeHeightChain)
-	})
-
-	t.Run("default interval", func(t *testing.T) {
-		var metrics mockCosmosMetrics
-		var client mockRPCClient
-
-		chains := []CosmosChain{
-			{
-				ChainID: "akash",
-				Rest:    []Endpoint{{}},
-			},
-		}
-		job, err := BuildCosmosRestJobs(&metrics, &client, chains)
-		require.NoError(t, err)
-
-		require.Equal(t, 5*time.Second, job[0].Interval())
 	})
 }

@@ -24,21 +24,20 @@ type CosmosMetrics interface {
 	SetNodeHeight(chain string, rpcURL url.URL, height float64)
 }
 
-// CosmosRestClient queries the Cosmos REST (aka LCD) API.
-type CosmosRestClient interface {
+type CosmosBlockFetcher interface {
 	LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error)
 }
 
 // CosmosRestJob queries the Cosmos REST (aka LCD) API for data and records various metrics.
 type CosmosRestJob struct {
 	chainID  string
-	client   CosmosRestClient
+	client   CosmosBlockFetcher
 	interval time.Duration
 	metrics  CosmosMetrics
 	url      *url.URL
 }
 
-func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosRestClient, chains []CosmosChain) ([]CosmosRestJob, error) {
+func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosBlockFetcher, chains []CosmosChain) ([]CosmosRestJob, error) {
 	var jobs []CosmosRestJob
 	for _, chain := range chains {
 		for _, rpc := range chain.Rest {
@@ -49,7 +48,7 @@ func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosRestClient, chains 
 			jobs = append(jobs, CosmosRestJob{
 				chainID:  chain.ChainID,
 				client:   client,
-				interval: rpc.Interval,
+				interval: intervalOrDefault(rpc.Interval),
 				metrics:  metrics,
 				url:      u,
 			})
