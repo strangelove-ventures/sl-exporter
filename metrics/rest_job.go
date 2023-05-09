@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/strangelove-ventures/sl-exporter/rest"
+	"golang.org/x/exp/slog"
 )
 
 // CosmosMetrics records metrics for Cosmos chains.
@@ -22,7 +23,7 @@ type CosmosRestClient interface {
 
 // CosmosRestJob queries the Cosmos REST (aka LCD) API for data and records various metrics.
 type CosmosRestJob struct {
-	chain    string
+	chainID  string
 	client   CosmosRestClient
 	interval time.Duration
 	metrics  CosmosMetrics
@@ -38,7 +39,7 @@ func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosRestClient, chains 
 				return nil, err
 			}
 			jobs = append(jobs, CosmosRestJob{
-				chain:    chain.ChainID,
+				chainID:  chain.ChainID,
 				client:   client,
 				interval: rpc.Interval,
 				metrics:  metrics,
@@ -69,10 +70,13 @@ func (job CosmosRestJob) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("query /status: %w", err)
 	}
+	if chainID := block.Block.Header.ChainID; chainID != job.chainID {
+		slog.Warn("Mismatched chain id", "expected", job.chainID, "actual", chainID)
+	}
 	height, err := strconv.ParseFloat(block.Block.Header.Height, 64)
 	if err != nil {
 		return fmt.Errorf("parse height: %w", err)
 	}
-	job.metrics.SetNodeHeight(job.chain, *job.url, height)
+	job.metrics.SetNodeHeight(job.chainID, *job.url, height)
 	return nil
 }
