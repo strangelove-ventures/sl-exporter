@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
 	"github.com/strangelove-ventures/sl-exporter/metrics"
+	"github.com/strangelove-ventures/sl-exporter/rest"
 	"golang.org/x/exp/slog"
 	"golang.org/x/sync/errgroup"
 )
@@ -63,13 +64,13 @@ func Execute() {
 
 	var jobs []metrics.Job
 
-	// Initialize RPC jobs
-	cometClient := metrics.NewCometClient(httpClient)
-	rpcJobs, err := metrics.NewRPCJobs(cosmos, cometClient, cfg.Cosmos)
+	// Initialize Endpoint jobs
+	restClient := rest.NewClient(httpClient)
+	restJobs, err := metrics.BuildCosmosRestJobs(cosmos, restClient, cfg.Cosmos)
 	if err != nil {
-		logFatal("Failed to create RPC jobs", err)
+		logFatal("Failed to create cosmos rest jobs", err)
 	}
-	jobs = append(jobs, toJobs(rpcJobs)...)
+	jobs = append(jobs, toJobs(restJobs)...)
 
 	// Configure error group with signal handling.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
