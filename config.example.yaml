@@ -23,6 +23,6 @@ cosmos:
   - chain_id: cosmoshub-4
     # Periodically polls REST API (aka LCD) for data such as block height. At least one is required.
     rest:
-      - url: https://api.comsoshub.strange.love
+      - url: https://api.cosmoshub.strange.love
         interval: 5s # Optional. Defaults to 5s.
       - url: https://api-cosmoshub-ia.cosmosia.notional.ventures
