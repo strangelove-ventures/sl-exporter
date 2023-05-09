@@ -41,13 +41,13 @@ func TestBuildStatic(t *testing.T) {
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
-		const want = `# HELP gauge_1 desc_1
-# TYPE gauge_1 gauge
-gauge_1{chain="agoric-1",denom="ubld"} 1
-gauge_1{chain="cosmoshub-4",denom="uatom"} 2
-# HELP gauge_2 desc_2
-# TYPE gauge_2 gauge
-gauge_2 3`
+		const want = `# HELP sl_exporter_gauge_1 desc_1
+# TYPE sl_exporter_gauge_1 gauge
+sl_exporter_gauge_1{chain="agoric-1",denom="ubld"} 1
+sl_exporter_gauge_1{chain="cosmoshub-4",denom="uatom"} 2
+# HELP sl_exporter_gauge_2 desc_2
+# TYPE sl_exporter_gauge_2 gauge
+sl_exporter_gauge_2 3`
 		require.Equal(t, want, strings.TrimSpace(r.Body.String()))
 	})
 
@@ -58,7 +58,7 @@ gauge_2 3`
 	t.Run("invalid labels", func(t *testing.T) {
 		gauges := []StaticGauge{
 			{
-				Name:        "gauge_1",
+				Name:        "sl_exporter_gauge_1",
 				Description: "desc_1",
 				Labels:      []string{"chain", "denom"},
 				Samples: []StaticSample{
