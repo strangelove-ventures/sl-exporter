@@ -64,13 +64,20 @@ func Execute() {
 
 	var jobs []metrics.Job
 
-	// Initialize Endpoint jobs
+	// Initialize Comsos Rest jobs
 	restClient := cosmos.NewRestClient(httpClient)
 	restJobs, err := metrics.BuildCosmosRestJobs(cosmosMets, restClient, cfg.Cosmos)
 	if err != nil {
 		logFatal("Failed to create cosmos rest jobs", err)
 	}
 	jobs = append(jobs, toJobs(restJobs)...)
+
+	// Initialize Cosmos validator jobs
+	valJobs, err := metrics.BuildCosmosValJobs(cosmosMets, restClient, cfg.Cosmos)
+	if err != nil {
+		logFatal("Failed to create cosmos validator jobs", err)
+	}
+	jobs = append(jobs, toJobs(valJobs)...)
 
 	// Configure error group with signal handling.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)

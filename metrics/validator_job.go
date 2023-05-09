@@ -58,12 +58,13 @@ func (job CosmosValJob) String() string {
 
 func (job CosmosValJob) Interval() time.Duration { return job.interval }
 
+// Run executes the job gathering a variety of metrics for cosmos validators.
 func (job CosmosValJob) Run(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRestTimeout)
 	defer cancel()
 	resp, err := job.client.SigningStatus(ctx, *job.restURL, job.consaddress)
 	if err != nil {
-		return fmt.Errorf("signing status: %w", err)
+		return err
 	}
 	var status JailStatus
 	if time.Since(resp.ValSigningInfo.JailedUntil) < 0 {
