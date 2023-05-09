@@ -20,7 +20,7 @@ static:
 # Cosmos metrics gather and export metrics for Cosmos chains.
 cosmos:
   # The canonical chain id.
-  - chain_id: cosmoshub-4
+  - chainID: cosmoshub-4
     # Periodically polls REST API (aka LCD) for data such as block height. At least one is required.
     rest:
       - url: https://api.cosmoshub.strange.love
