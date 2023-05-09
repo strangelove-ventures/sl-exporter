@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:embed testdata/latest_block.json
-var LatestBlockFixture []byte
+//go:embed testdata/block.json
+var blockFixture []byte
 
 func TestClient_LatestBlock(t *testing.T) {
 	// Ensures we aren't comparing against context.Background().
@@ -31,7 +31,7 @@ func TestClient_LatestBlock(t *testing.T) {
 
 			return &http.Response{
 				StatusCode: 200,
-				Body:       io.NopCloser(bytes.NewReader(LatestBlockFixture)),
+				Body:       io.NopCloser(bytes.NewReader(blockFixture)),
 			}, nil
 		}
 
