@@ -27,9 +27,9 @@ func TestCosmos(t *testing.T) {
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
-		const want = `# HELP sl_exporter_cosmos_block_height Latest block height of a cosmos node.
-# TYPE sl_exporter_cosmos_block_height gauge
-sl_exporter_cosmos_block_height{chain_id="cosmoshub-4",source="cosmos.api.example.com"} 12345
+		const want = `# HELP sl_exporter_cosmos_latest_block_height Latest block height of a cosmos node.
+# TYPE sl_exporter_cosmos_latest_block_height gauge
+sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4",source="cosmos.api.example.com"} 12345
 `
 		require.Equal(t, strings.TrimSpace(want), strings.TrimSpace(r.Body.String()))
 	})
@@ -49,7 +49,7 @@ sl_exporter_cosmos_block_height{chain_id="cosmoshub-4",source="cosmos.api.exampl
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
-		const want = `sl_exporter_cosmos_block_height{chain_id="cosmoshub-4",source="api.example.com/v1/cosmos"} 12345`
+		const want = `sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4",source="api.example.com/v1/cosmos"} 12345`
 		require.Contains(t, r.Body.String(), want)
 	})
 }
