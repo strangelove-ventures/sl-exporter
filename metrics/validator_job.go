@@ -18,6 +18,8 @@ type CosmosValidatorClient interface {
 }
 
 // CosmosValJob queries the Cosmos REST (aka LCD) API for data and records metrics specific to a validator.
+// It records:
+// - whether the validator is jailed or tombstoned
 type CosmosValJob struct {
 	chainID     string
 	client      CosmosValidatorClient
@@ -64,7 +66,7 @@ func (job CosmosValJob) Run(ctx context.Context) error {
 		return fmt.Errorf("signing status: %w", err)
 	}
 	var status JailStatus
-	if resp.ValSigningInfo.JailedUntil.After(time.Now()) {
+	if time.Since(resp.ValSigningInfo.JailedUntil) < 0 {
 		status = JailStatusJailed
 	}
 	if resp.ValSigningInfo.Tombstoned {
