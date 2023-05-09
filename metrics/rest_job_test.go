@@ -28,8 +28,9 @@ type mockRestClient struct {
 }
 
 func (m *mockRestClient) LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error) {
-	if ctx == nil {
-		panic("nil context")
+	_, ok := ctx.Deadline()
+	if !ok {
+		panic("expected deadline in context")
 	}
 	m.StatusURL = baseURL
 	return m.StubBlocks[baseURL.Hostname()], nil
