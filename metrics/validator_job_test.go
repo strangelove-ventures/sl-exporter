@@ -110,6 +110,8 @@ func TestCosmosValJob_Run(t *testing.T) {
 			{time.Time{}, false, JailStatusActive},
 			{now.Add(time.Hour), false, JailStatusJailed},
 			{time.Time{}, true, JailStatusTombstoned},
+			// Tombstoned takes precedence
+			{now.Add(time.Hour), true, JailStatusTombstoned},
 		} {
 			var status cosmos.SigningStatus
 			status.ValSigningInfo.Tombstoned = tt.Tombstoned

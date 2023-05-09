@@ -74,6 +74,8 @@ func TestCosmosRestJob_String(t *testing.T) {
 }
 
 func TestCosmosRestJob_Run(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	t.Run("happy path", func(t *testing.T) {
