@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/strangelove-ventures/sl-exporter/rest"
+	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"golang.org/x/exp/slog"
 )
 
@@ -18,7 +18,7 @@ type CosmosMetrics interface {
 
 // CosmosRestClient queries the Cosmos REST (aka LCD) API.
 type CosmosRestClient interface {
-	LatestBlock(ctx context.Context, baseURL url.URL) (rest.Block, error)
+	LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error)
 }
 
 // CosmosRestJob queries the Cosmos REST (aka LCD) API for data and records various metrics.

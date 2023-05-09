@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/sl-exporter/rest"
+	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,11 +23,11 @@ func (m *mockCosmosMetrics) SetNodeHeight(chain string, rpcURL url.URL, height f
 }
 
 type mockRPCClient struct {
-	StubBlocks map[string]rest.Block
+	StubBlocks map[string]cosmos.Block
 	StatusURL  url.URL
 }
 
-func (m *mockRPCClient) LatestBlock(ctx context.Context, baseURL url.URL) (rest.Block, error) {
+func (m *mockRPCClient) LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error) {
 	if ctx == nil {
 		panic("nil context")
 	}
@@ -40,14 +40,14 @@ func TestCosmosRestJob_Run(t *testing.T) {
 
 	t.Run("happy path", func(t *testing.T) {
 		var client mockRPCClient
-		client.StubBlocks = make(map[string]rest.Block)
+		client.StubBlocks = make(map[string]cosmos.Block)
 
-		var blk1 rest.Block
+		var blk1 cosmos.Block
 		blk1.Block.Header.Height = "1234567890"
 		blk1.Block.Header.ChainID = "cosmoshub-4"
 		client.StubBlocks["cosmos.example.com"] = blk1
 
-		var blk2 rest.Block
+		var blk2 cosmos.Block
 		blk2.Block.Header.Height = "54321"
 		blk2.Block.Header.ChainID = "akash-1234"
 		client.StubBlocks["akash.example.com"] = blk2

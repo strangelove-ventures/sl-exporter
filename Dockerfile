@@ -15,7 +15,7 @@ RUN go mod download
 # Copy the go source
 COPY *.go .
 COPY cmd/ cmd/
-COPY rest/ rest/
+COPY cosmos/ cosmos/
 COPY metrics/ metrics/
 
 # Build

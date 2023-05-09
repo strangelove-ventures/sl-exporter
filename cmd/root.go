@@ -13,8 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
+	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"github.com/strangelove-ventures/sl-exporter/metrics"
-	"github.com/strangelove-ventures/sl-exporter/rest"
 	"golang.org/x/exp/slog"
 	"golang.org/x/sync/errgroup"
 )
@@ -59,14 +59,14 @@ func Execute() {
 	registry.MustRegister(metrics.BuildStatic(cfg.Static.Gauges)...)
 
 	// Register cosmos chain metrics
-	cosmos := metrics.NewCosmos()
-	registry.MustRegister(cosmos.Metrics()...)
+	cosmosMets := metrics.NewCosmos()
+	registry.MustRegister(cosmosMets.Metrics()...)
 
 	var jobs []metrics.Job
 
 	// Initialize Endpoint jobs
-	restClient := rest.NewClient(httpClient)
-	restJobs, err := metrics.BuildCosmosRestJobs(cosmos, restClient, cfg.Cosmos)
+	restClient := cosmos.NewRestClient(httpClient)
+	restJobs, err := metrics.BuildCosmosRestJobs(cosmosMets, restClient, cfg.Cosmos)
 	if err != nil {
 		logFatal("Failed to create cosmos rest jobs", err)
 	}

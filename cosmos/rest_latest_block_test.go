@@ -1,4 +1,4 @@
-package rest
+package cosmos
 
 import (
 	"bytes"
@@ -21,7 +21,7 @@ func TestClient_LatestBlock(t *testing.T) {
 	ctx := context.WithValue(context.Background(), "foo", "bar")
 
 	t.Run("happy path", func(t *testing.T) {
-		client := NewClient(http.DefaultClient)
+		client := NewRestClient(http.DefaultClient)
 		require.NotNil(t, client.httpDo)
 
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
@@ -45,7 +45,7 @@ func TestClient_LatestBlock(t *testing.T) {
 	})
 
 	t.Run("http error", func(t *testing.T) {
-		client := NewClient(http.DefaultClient)
+		client := NewRestClient(http.DefaultClient)
 
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
 			return nil, errors.New("http error")
@@ -58,7 +58,7 @@ func TestClient_LatestBlock(t *testing.T) {
 	})
 
 	t.Run("bad status code", func(t *testing.T) {
-		client := NewClient(http.DefaultClient)
+		client := NewRestClient(http.DefaultClient)
 		require.NotNil(t, client.httpDo)
 
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
