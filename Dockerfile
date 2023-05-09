@@ -15,6 +15,8 @@ RUN go mod download
 # Copy the go source
 COPY *.go .
 COPY cmd/ cmd/
+COPY rest/ rest/
+COPY metrics/ metrics/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
