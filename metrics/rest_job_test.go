@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/strangelove-ventures/sl-exporter/rest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,49 +23,45 @@ func (m *mockCosmosMetrics) SetNodeHeight(chain string, rpcURL url.URL, height f
 }
 
 type mockRPCClient struct {
-	StubStatus CometStatus
-	StatusURL  url.URL
+	StubBlock rest.Block
+	StatusURL url.URL
 }
 
-func (m *mockRPCClient) Status(ctx context.Context, rpcURL url.URL) (CometStatus, error) {
+func (m *mockRPCClient) LatestBlock(ctx context.Context, baseURL url.URL) (rest.Block, error) {
 	if ctx == nil {
 		panic("nil context")
 	}
-	_, ok := ctx.Deadline()
-	if !ok {
-		panic("context has no deadline")
-	}
-	m.StatusURL = rpcURL
-	return m.StubStatus, nil
+	m.StatusURL = baseURL
+	return m.StubBlock, nil
 }
 
-func TestRPCJob_Run(t *testing.T) {
+func TestCosmosRestJob_Run(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("happy path", func(t *testing.T) {
 		var metrics mockCosmosMetrics
 		var client mockRPCClient
-		client.StubStatus.Result.SyncInfo.LatestBlockHeight = "1234567890"
+		client.StubBlock.Block.Header.Height = "1234567890"
 
 		chains := []CosmosChain{
 			{
 				ChainID: "cosmoshub-4",
-				RPCs:    []RPC{{URL: "http://rpc.example.com", Interval: time.Second}, {}},
+				Rest:    []Endpoint{{URL: "http://rpc.example.com", Interval: time.Second}, {}},
 			},
 			{
 				ChainID: "akash",
-				RPCs:    []RPC{{}},
+				Rest:    []Endpoint{{}},
 			},
 		}
 
-		jobs, err := NewRPCJobs(&metrics, &client, chains)
+		jobs, err := BuildCosmosRestJobs(&metrics, &client, chains)
 		require.NoError(t, err)
 
 		require.Len(t, jobs, 3)
 
 		job := jobs[0]
 
-		require.Equal(t, "RPC http://rpc.example.com", job.String())
+		require.Equal(t, "Cosmos REST http://rpc.example.com", job.String())
 		require.Equal(t, time.Second, job.Interval())
 
 		err = job.Run(ctx)
@@ -90,10 +87,10 @@ func TestRPCJob_Run(t *testing.T) {
 		chains := []CosmosChain{
 			{
 				ChainID: "akash",
-				RPCs:    []RPC{{}},
+				Rest:    []Endpoint{{}},
 			},
 		}
-		job, err := NewRPCJobs(&metrics, &client, chains)
+		job, err := BuildCosmosRestJobs(&metrics, &client, chains)
 		require.NoError(t, err)
 
 		require.Equal(t, 5*time.Second, job[0].Interval())
