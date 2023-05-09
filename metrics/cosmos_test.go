@@ -18,7 +18,7 @@ func TestCosmos(t *testing.T) {
 		cosmos := NewCosmos()
 		reg.MustRegister(cosmos.Metrics()...)
 
-		u, err := url.Parse("http://cosmos.rpc.example.com:26657?timeout=10s")
+		u, err := url.Parse("http://cosmos.api.example.com:26657?timeout=10s")
 		require.NoError(t, err)
 
 		cosmos.SetNodeHeight("cosmoshub-4", *u, 12345)
@@ -27,20 +27,20 @@ func TestCosmos(t *testing.T) {
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
-		const want = `# HELP public_rpc_node_height Node height of a public RPC node
-# TYPE public_rpc_node_height gauge
-public_rpc_node_height{chain="cosmoshub-4",source="cosmos.rpc.example.com"} 12345
+		const want = `# HELP sl_exporter_cosmos_block_height Latest block height of a node.
+# TYPE sl_exporter_cosmos_block_height gauge
+sl_exporter_cosmos_block_height{chain_id="cosmoshub-4",source="cosmos.api.example.com"} 12345
 `
 		require.Equal(t, strings.TrimSpace(want), strings.TrimSpace(r.Body.String()))
 	})
 
-	t.Run("rpc url with path", func(t *testing.T) {
+	t.Run("url with path", func(t *testing.T) {
 		reg := prometheus.NewRegistry()
 		cosmos := NewCosmos()
 		reg.MustRegister(cosmos.Metrics()...)
 
-		// Some RPC nodes, like Strangelove's Voyager API, use one hostname and different paths for different chains.
-		u, err := url.Parse("http://rpc.example.com:26657/v1/cosmos")
+		// Some nodes, like Strangelove's Voyager API, use one hostname and different paths for different chains.
+		u, err := url.Parse("http://api.example.com:26657/v1/cosmos")
 		require.NoError(t, err)
 
 		cosmos.SetNodeHeight("cosmoshub-4", *u, 12345)
@@ -49,7 +49,7 @@ public_rpc_node_height{chain="cosmoshub-4",source="cosmos.rpc.example.com"} 1234
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
-		const want = `public_rpc_node_height{chain="cosmoshub-4",source="rpc.example.com/v1/cosmos"} 12345`
+		const want = `sl_exporter_cosmos_block_height{chain_id="cosmoshub-4",source="api.example.com/v1/cosmos"} 12345`
 		require.Contains(t, r.Body.String(), want)
 	})
 }
