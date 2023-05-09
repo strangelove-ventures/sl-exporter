@@ -15,10 +15,10 @@ func NewCosmos() *Cosmos {
 	return &Cosmos{
 		rpcHeightGauge: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: prometheus.BuildFQName(Namespace, Subsystem, "public_rpc_node_height"),
-				Help: "Node height of a public RPC node",
+				Name: prometheus.BuildFQName(Namespace, CosmosSubsystem, "latest_block_height"),
+				Help: "Latest block height of a cosmos node.",
 			},
-			[]string{"chain", "source"}, // rpc height labels
+			[]string{"chain_id", "source"}, // rpc height labels
 		),
 	}
 }

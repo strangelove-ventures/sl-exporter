@@ -19,13 +19,10 @@ static:
 
 # Cosmos metrics gather and export metrics for Cosmos chains.
 cosmos:
-  # Required. Recommended value is the canonical chain id, but can be any arbitrary string to identify the cosmos chain.
-  - chain: axelar-dojo-1
-    # RPCs, if present, periodically polls for CometBFT RPC data such as block height. Currently, polls every 5s.
-    rpcs:
-      - url: https://axelar-rpc.quantnode.tech
-        interval: 10s # Optional. Defaults to 5s.
-      - url: https://rpc.axelar.bh.rocks
-        # Not supported yet, but data structure allows extensions to support authenticating with RPC providers.
-        # headers:
-        #  X-API-KEY: my-api-key
+  # The canonical chain id.
+  - chainID: cosmoshub-4
+    # Periodically polls REST API (aka LCD) for data such as block height. At least one is required.
+    rest:
+      - url: https://api.cosmoshub.strange.love
+        interval: 5s # Optional. Defaults to 5s.
+      - url: https://api-cosmoshub-ia.cosmosia.notional.ventures

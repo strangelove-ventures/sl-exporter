@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,55 +23,61 @@ func (m *mockCosmosMetrics) SetNodeHeight(chain string, rpcURL url.URL, height f
 }
 
 type mockRPCClient struct {
-	StubStatus CometStatus
+	StubBlocks map[string]cosmos.Block
 	StatusURL  url.URL
 }
 
-func (m *mockRPCClient) Status(ctx context.Context, rpcURL url.URL) (CometStatus, error) {
+func (m *mockRPCClient) LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error) {
 	if ctx == nil {
 		panic("nil context")
 	}
-	_, ok := ctx.Deadline()
-	if !ok {
-		panic("context has no deadline")
-	}
-	m.StatusURL = rpcURL
-	return m.StubStatus, nil
+	m.StatusURL = baseURL
+	return m.StubBlocks[baseURL.Hostname()], nil
 }
 
-func TestRPCJob_Run(t *testing.T) {
+func TestCosmosRestJob_Run(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("happy path", func(t *testing.T) {
-		var metrics mockCosmosMetrics
 		var client mockRPCClient
-		client.StubStatus.Result.SyncInfo.LatestBlockHeight = "1234567890"
+		client.StubBlocks = make(map[string]cosmos.Block)
+
+		var blk1 cosmos.Block
+		blk1.Block.Header.Height = "1234567890"
+		blk1.Block.Header.ChainID = "cosmoshub-4"
+		client.StubBlocks["cosmos.example.com"] = blk1
+
+		var blk2 cosmos.Block
+		blk2.Block.Header.Height = "54321"
+		blk2.Block.Header.ChainID = "akash-1234"
+		client.StubBlocks["akash.example.com"] = blk2
 
 		chains := []CosmosChain{
 			{
-				Chain: "cosmoshub-4",
-				RPCs:  []RPC{{URL: "http://rpc.example.com", Interval: time.Second}, {}},
+				ChainID: "cosmoshub-4",
+				Rest:    []Endpoint{{URL: "http://cosmos.example.com", Interval: time.Second}, {}},
 			},
 			{
-				Chain: "akash",
-				RPCs:  []RPC{{}},
+				ChainID: "akash-1234",
+				Rest:    []Endpoint{{URL: "http://akash.example.com"}},
 			},
 		}
 
-		jobs, err := NewRPCJobs(&metrics, &client, chains)
+		var metrics mockCosmosMetrics
+		jobs, err := BuildCosmosRestJobs(&metrics, &client, chains)
 		require.NoError(t, err)
 
 		require.Len(t, jobs, 3)
 
 		job := jobs[0]
 
-		require.Equal(t, "RPC http://rpc.example.com", job.String())
+		require.Equal(t, "Cosmos REST http://cosmos.example.com", job.String())
 		require.Equal(t, time.Second, job.Interval())
 
 		err = job.Run(ctx)
 		require.NoError(t, err)
 
-		wantURL := url.URL{Scheme: "http", Host: "rpc.example.com"}
+		wantURL := url.URL{Scheme: "http", Host: "cosmos.example.com"}
 		require.Equal(t, wantURL, client.StatusURL)
 
 		require.Equal(t, wantURL, metrics.NodeHeightRPCURL)
@@ -80,7 +87,8 @@ func TestRPCJob_Run(t *testing.T) {
 		job = jobs[2]
 		err = job.Run(ctx)
 		require.NoError(t, err)
-		require.Equal(t, "akash", metrics.NodeHeightChain)
+		require.Equal(t, float64(54321), metrics.NodeHeight)
+		require.Equal(t, "akash-1234", metrics.NodeHeightChain)
 	})
 
 	t.Run("default interval", func(t *testing.T) {
@@ -89,11 +97,11 @@ func TestRPCJob_Run(t *testing.T) {
 
 		chains := []CosmosChain{
 			{
-				Chain: "akash",
-				RPCs:  []RPC{{}},
+				ChainID: "akash",
+				Rest:    []Endpoint{{}},
 			},
 		}
-		job, err := NewRPCJobs(&metrics, &client, chains)
+		job, err := BuildCosmosRestJobs(&metrics, &client, chains)
 		require.NoError(t, err)
 
 		require.Equal(t, 5*time.Second, job[0].Interval())
