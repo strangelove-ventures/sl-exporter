@@ -18,7 +18,8 @@ var blockFixture []byte
 
 func TestClient_LatestBlock(t *testing.T) {
 	// Ensures we aren't comparing against context.Background().
-	ctx := context.WithValue(context.Background(), "foo", "bar")
+	type dummy string // Passes lint
+	ctx := context.WithValue(context.Background(), dummy("foo"), dummy("bar"))
 
 	t.Run("happy path", func(t *testing.T) {
 		client := NewRestClient(http.DefaultClient)
