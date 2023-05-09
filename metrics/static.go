@@ -19,7 +19,7 @@ func BuildStatic(gauges []StaticGauge) []prometheus.Collector {
 	metrics := make([]prometheus.Collector, len(gauges))
 	for i, g := range gauges {
 		gaugeVec := prometheus.NewGaugeVec(
-			prometheus.GaugeOpts{Name: prometheus.BuildFQName(Namespace, Subsystem, g.Name), Help: g.Description},
+			prometheus.GaugeOpts{Name: prometheus.BuildFQName(Namespace, CosmosSubsystem, g.Name), Help: g.Description},
 			g.Labels,
 		)
 		for _, sample := range g.Samples {

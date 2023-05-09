@@ -35,7 +35,7 @@ func NewRPCJobs(metrics CosmosMetrics, client RPCClient, chains []CosmosChain) (
 				return nil, err
 			}
 			jobs = append(jobs, RPCJob{
-				chain:    chain.Chain,
+				chain:    chain.ChainID,
 				client:   client,
 				interval: rpc.Interval,
 				metrics:  metrics,

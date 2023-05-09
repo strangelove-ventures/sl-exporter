@@ -48,12 +48,12 @@ func TestRPCJob_Run(t *testing.T) {
 
 		chains := []CosmosChain{
 			{
-				Chain: "cosmoshub-4",
-				RPCs:  []RPC{{URL: "http://rpc.example.com", Interval: time.Second}, {}},
+				ChainID: "cosmoshub-4",
+				RPCs:    []RPC{{URL: "http://rpc.example.com", Interval: time.Second}, {}},
 			},
 			{
-				Chain: "akash",
-				RPCs:  []RPC{{}},
+				ChainID: "akash",
+				RPCs:    []RPC{{}},
 			},
 		}
 
@@ -89,8 +89,8 @@ func TestRPCJob_Run(t *testing.T) {
 
 		chains := []CosmosChain{
 			{
-				Chain: "akash",
-				RPCs:  []RPC{{}},
+				ChainID: "akash",
+				RPCs:    []RPC{{}},
 			},
 		}
 		job, err := NewRPCJobs(&metrics, &client, chains)
