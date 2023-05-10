@@ -24,5 +24,8 @@ cosmos:
     # Periodically polls REST API (aka LCD) for data such as block height. At least one is required.
     rest:
       - url: https://api.cosmoshub.strange.love
-        interval: 5s # Optional. Defaults to 5s.
+        interval: 15s # Optional. Uses a reasonable default if unset.
       - url: https://api-cosmoshub-ia.cosmosia.notional.ventures
+    validators:
+      # The consensus address of a validator.
+      - consaddress: cosmosvalcons164q2kq3q3psj436t9p7swmdlh39rw73wpy6qx6

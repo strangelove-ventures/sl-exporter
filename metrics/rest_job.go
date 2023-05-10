@@ -11,12 +11,21 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+const defaultRestTimeout = 5 * time.Second
+
+func intervalOrDefault(dur time.Duration) time.Duration {
+	const defaultInterval = 15 * time.Second
+	if dur <= 0 {
+		return defaultInterval
+	}
+	return dur
+}
+
 // CosmosMetrics records metrics for Cosmos chains.
 type CosmosMetrics interface {
 	SetNodeHeight(chain string, rpcURL url.URL, height float64)
 }
 
-// CosmosRestClient queries the Cosmos REST (aka LCD) API.
 type CosmosRestClient interface {
 	LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error)
 }
@@ -41,7 +50,7 @@ func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosRestClient, chains 
 			jobs = append(jobs, CosmosRestJob{
 				chainID:  chain.ChainID,
 				client:   client,
-				interval: rpc.Interval,
+				interval: intervalOrDefault(rpc.Interval),
 				metrics:  metrics,
 				url:      u,
 			})
@@ -56,15 +65,12 @@ func (job CosmosRestJob) String() string {
 
 // Interval is how often to poll the Endpoint server for data. Defaults to 5s.
 func (job CosmosRestJob) Interval() time.Duration {
-	if job.interval <= 0 {
-		return 5 * time.Second
-	}
-	return job.interval
+	return intervalOrDefault(job.interval)
 }
 
 // Run queries the Endpoint server for data and records various metrics.
 func (job CosmosRestJob) Run(ctx context.Context) error {
-	cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	cctx, cancel := context.WithTimeout(ctx, defaultRestTimeout)
 	defer cancel()
 	block, err := job.client.LatestBlock(cctx, *job.url)
 	if err != nil {
