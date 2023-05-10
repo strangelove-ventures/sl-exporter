@@ -65,13 +65,13 @@ func Execute() {
 
 	var jobs []metrics.Job
 
-	// Initialize Comsos Rest jobs
+	// Initialize Cosmos Rest jobs
 	// TODO(nix): Temporary. Will introduce fallback mechanism.
 	u, err := url.Parse(cfg.Cosmos[0].Rest[0].URL)
 	if err != nil {
 		panic(err)
 	}
-	// TODO(nix): Need different rest clients per chain.
+	// TODO(nix): Need different rest clients per chain. This hack prevents > 1 chain.
 	restClient := cosmos.NewRestClient(httpClient, *u)
 	restJobs := metrics.BuildCosmosRestJobs(cosmosMets, restClient, cfg.Cosmos)
 	jobs = append(jobs, toJobs(restJobs)...)
