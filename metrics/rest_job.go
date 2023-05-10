@@ -3,7 +3,6 @@ package metrics
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -11,10 +10,12 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-const defaultRestTimeout = 5 * time.Second
+const (
+	defaultInterval    = 15 * time.Second
+	defaultRestTimeout = 5 * time.Second
+)
 
 func intervalOrDefault(dur time.Duration) time.Duration {
-	const defaultInterval = 15 * time.Second
 	if dur <= 0 {
 		return defaultInterval
 	}
@@ -23,11 +24,11 @@ func intervalOrDefault(dur time.Duration) time.Duration {
 
 // CosmosMetrics records metrics for Cosmos chains.
 type CosmosMetrics interface {
-	SetNodeHeight(chain string, rpcURL url.URL, height float64)
+	SetNodeHeight(chain string, height float64)
 }
 
 type CosmosRestClient interface {
-	LatestBlock(ctx context.Context, baseURL url.URL) (cosmos.Block, error)
+	LatestBlock(ctx context.Context) (cosmos.Block, error)
 }
 
 // CosmosRestJob queries the Cosmos REST (aka LCD) API for data and records various metrics.
@@ -36,31 +37,23 @@ type CosmosRestJob struct {
 	client   CosmosRestClient
 	interval time.Duration
 	metrics  CosmosMetrics
-	url      *url.URL
 }
 
-func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosRestClient, chains []CosmosChain) ([]CosmosRestJob, error) {
+func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosRestClient, chains []CosmosChain) []CosmosRestJob {
 	var jobs []CosmosRestJob
 	for _, chain := range chains {
-		for _, rpc := range chain.Rest {
-			u, err := url.Parse(rpc.URL)
-			if err != nil {
-				return nil, err
-			}
-			jobs = append(jobs, CosmosRestJob{
-				chainID:  chain.ChainID,
-				client:   client,
-				interval: intervalOrDefault(rpc.Interval),
-				metrics:  metrics,
-				url:      u,
-			})
-		}
+		jobs = append(jobs, CosmosRestJob{
+			chainID:  chain.ChainID,
+			client:   client,
+			interval: intervalOrDefault(defaultInterval), // TODO(nix) make configurable
+			metrics:  metrics,
+		})
 	}
-	return jobs, nil
+	return jobs
 }
 
 func (job CosmosRestJob) String() string {
-	return fmt.Sprintf("Cosmos REST %s", job.url)
+	return fmt.Sprintf("Cosmos REST %s", job.chainID)
 }
 
 // Interval is how often to poll the Endpoint server for data. Defaults to 5s.
@@ -72,7 +65,7 @@ func (job CosmosRestJob) Interval() time.Duration {
 func (job CosmosRestJob) Run(ctx context.Context) error {
 	cctx, cancel := context.WithTimeout(ctx, defaultRestTimeout)
 	defer cancel()
-	block, err := job.client.LatestBlock(cctx, *job.url)
+	block, err := job.client.LatestBlock(cctx)
 	if err != nil {
 		return fmt.Errorf("query /status: %w", err)
 	}
@@ -83,6 +76,6 @@ func (job CosmosRestJob) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("parse height: %w", err)
 	}
-	job.metrics.SetNodeHeight(job.chainID, *job.url, height)
+	job.metrics.SetNodeHeight(job.chainID, height)
 	return nil
 }

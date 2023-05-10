@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"context"
-	"net/url"
 	"testing"
 	"time"
 
@@ -11,17 +10,15 @@ import (
 )
 
 type mockValRestClient struct {
-	SigningStatusURL     url.URL
 	SigningStatusAddress string
 	StubSigningStatus    cosmos.SigningStatus
 }
 
-func (m *mockValRestClient) SigningStatus(ctx context.Context, baseURL url.URL, consaddress string) (cosmos.SigningStatus, error) {
+func (m *mockValRestClient) SigningStatus(ctx context.Context, consaddress string) (cosmos.SigningStatus, error) {
 	_, ok := ctx.Deadline()
 	if !ok {
 		panic("expected deadline in context")
 	}
-	m.SigningStatusURL = baseURL
 	m.SigningStatusAddress = consaddress
 	return m.StubSigningStatus, nil
 }
@@ -29,14 +26,12 @@ func (m *mockValRestClient) SigningStatus(ctx context.Context, baseURL url.URL, 
 type mockValMetrics struct {
 	VailJailChain  string
 	ValJailAddress string
-	ValJailURL     url.URL
 	ValJailStatus  JailStatus
 }
 
-func (m *mockValMetrics) SetValJailStatus(chain, consaddress string, restURL url.URL, status JailStatus) {
+func (m *mockValMetrics) SetValJailStatus(chain, consaddress string, status JailStatus) {
 	m.VailJailChain = chain
 	m.ValJailAddress = consaddress
-	m.ValJailURL = restURL
 	m.ValJailStatus = status
 }
 
@@ -55,8 +50,7 @@ func TestCosmosValJob_Interval(t *testing.T) {
 		},
 	}
 
-	jobs, err := BuildCosmosValJobs(nil, nil, []CosmosChain{chain})
-	require.NoError(t, err)
+	jobs := BuildCosmosValJobs(nil, nil, []CosmosChain{chain})
 
 	require.Len(t, jobs, 4)
 	require.Equal(t, time.Second, jobs[0].Interval())
@@ -78,8 +72,7 @@ func TestCosmosValJob_String(t *testing.T) {
 			{ConsAddress: "cosmosvalcons567"},
 		},
 	}
-	jobs, err := BuildCosmosValJobs(nil, nil, []CosmosChain{chain})
-	require.NoError(t, err)
+	jobs := BuildCosmosValJobs(nil, nil, []CosmosChain{chain})
 
 	require.Len(t, jobs, 2)
 	require.Equal(t, "Cosmos validator cosmosvalcons123: http://cosmos.example.com", jobs[0].String())
@@ -121,27 +114,23 @@ func TestCosmosValJob_Run(t *testing.T) {
 
 			var metrics mockValMetrics
 
-			jobs, err := BuildCosmosValJobs(&metrics, &client, []CosmosChain{chain})
-			require.NoError(t, err)
+			jobs := BuildCosmosValJobs(&metrics, &client, []CosmosChain{chain})
 
 			require.Len(t, jobs, 1)
-			err = jobs[0].Run(context.Background())
+			err := jobs[0].Run(context.Background())
 
 			require.NoError(t, err)
-			require.Equal(t, "http://cosmos.example.com", client.SigningStatusURL.String())
 			require.Equal(t, client.SigningStatusAddress, "cosmosvalcons123")
 
 			require.Equal(t, "cosmoshub-4", metrics.VailJailChain)
 			require.Equal(t, "cosmosvalcons123", metrics.ValJailAddress)
-			require.Equal(t, "http://cosmos.example.com", metrics.ValJailURL.String())
 			require.Equal(t, tt.WantStatus, metrics.ValJailStatus)
 		}
 	})
 
 	t.Run("zero state", func(t *testing.T) {
-		jobs, err := BuildCosmosValJobs(nil, nil, nil)
+		jobs := BuildCosmosValJobs(nil, nil, nil)
 
-		require.NoError(t, err)
 		require.Empty(t, jobs)
 	})
 }
