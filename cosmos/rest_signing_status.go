@@ -2,7 +2,6 @@ package cosmos
 
 import (
 	"context"
-	"net/url"
 	"path"
 	"time"
 )
@@ -20,9 +19,9 @@ type SigningStatus struct {
 }
 
 // SigningStatus returns the signing status of a validator given the consensus address.
-func (c *RestClient) SigningStatus(ctx context.Context, restURL url.URL, consaddress string) (SigningStatus, error) {
-	restURL.Path = path.Join("/cosmos/slashing/v1beta1/signing_infos", consaddress)
+func (c RestClient) SigningStatus(ctx context.Context, consaddress string) (SigningStatus, error) {
+	c.baseURL.Path = path.Join("/cosmos/slashing/v1beta1/signing_infos", consaddress)
 	var status SigningStatus
-	err := c.get(ctx, restURL.String(), &status)
+	err := c.get(ctx, c.baseURL.String(), &status)
 	return status, err
 }

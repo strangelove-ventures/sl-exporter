@@ -15,7 +15,10 @@ import (
 func TestRestClient_SigningStatus(t *testing.T) {
 	t.Parallel()
 
-	client := NewRestClient(nil)
+	baseURL, err := url.Parse("https://api.example.com")
+	require.NoError(t, err)
+
+	client := NewRestClient(nil, *baseURL)
 
 	client.httpDo = func(req *http.Request) (*http.Response, error) {
 		require.Equal(t, "GET", req.Method)
@@ -37,11 +40,7 @@ func TestRestClient_SigningStatus(t *testing.T) {
 		}, nil
 	}
 
-	u, err := url.Parse("https://api.example.com")
-	require.NoError(t, err)
-
-	got, err := client.SigningStatus(context.Background(), *u, "cosmosvalcons123")
-	require.NoError(t, err)
+	got, err := client.SigningStatus(context.Background(), "cosmosvalcons123")
 
 	require.True(t, got.ValSigningInfo.Tombstoned)
 	require.Equal(t, time.Date(2021, time.November, 7, 3, 19, 15, 865885008, time.UTC), got.ValSigningInfo.JailedUntil)
