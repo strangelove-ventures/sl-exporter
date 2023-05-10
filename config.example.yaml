@@ -21,7 +21,8 @@ static:
 cosmos:
   # The canonical chain id.
   - chainID: cosmoshub-4
-    # Periodically polls REST API (aka LCD) for data such as block height. At least one is required.
+    # Periodically polls REST API (aka LCD) for data such as block height. At least one REST url is required.
+    interval: 15s # Optional. How often to poll the REST API. Default is 15s.
     rest:
       - url: https://api.cosmoshub.strange.love
       - url: https://api-cosmoshub-ia.cosmosia.notional.ventures
