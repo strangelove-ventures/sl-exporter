@@ -41,6 +41,7 @@ func TestRestClient_SigningStatus(t *testing.T) {
 	}
 
 	got, err := client.SigningStatus(context.Background(), "cosmosvalcons123")
+	require.NoError(t, err)
 
 	require.True(t, got.ValSigningInfo.Tombstoned)
 	require.Equal(t, time.Date(2021, time.November, 7, 3, 19, 15, 865885008, time.UTC), got.ValSigningInfo.JailedUntil)
