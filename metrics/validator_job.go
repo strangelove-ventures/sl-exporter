@@ -35,7 +35,7 @@ func BuildCosmosValJobs(metrics CosmosValidatorMetrics, client CosmosValidatorCl
 				chainID:     chain.ChainID,
 				client:      client,
 				consaddress: val.ConsAddress,
-				interval:    intervalOrDefault(defaultInterval), // TODO(nix) make configurable
+				interval:    intervalOrDefault(chain.Interval),
 				metrics:     metrics,
 			})
 		}

@@ -4,6 +4,8 @@ import "time"
 
 type CosmosChain struct {
 	ChainID string
+	// Interval is how often to poll the endpoints for data.
+	Interval time.Duration
 	// Rest are the Cosmos REST (aka LCD) endpoints to poll for data.
 	Rest       []Endpoint
 	Validators []CosmosValidator
@@ -16,6 +18,4 @@ type CosmosValidator struct {
 
 type Endpoint struct {
 	URL string
-	// Interval is how often to poll the Endpoint server for data. Defaults to 5s.
-	Interval time.Duration
 }

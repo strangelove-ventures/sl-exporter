@@ -38,33 +38,26 @@ func (m *mockValMetrics) SetValJailStatus(chain, consaddress string, status Jail
 func TestCosmosValJob_Interval(t *testing.T) {
 	t.Parallel()
 
-	chain := CosmosChain{
-		Rest: []Endpoint{
-			{URL: "http://cosmos.example.com", Interval: time.Second},
-			{URL: "http://another.example.com"},
-		},
-
-		Validators: []CosmosValidator{
-			{ConsAddress: "cosmosvalcons123"},
-			{ConsAddress: "cosmosvalcons567"},
-		},
+	chains := []CosmosChain{
+		{Interval: time.Second, Validators: []CosmosValidator{{ConsAddress: "1"}, {ConsAddress: "2"}}},
+		{Validators: []CosmosValidator{{ConsAddress: "3"}}}, // empty chain
 	}
 
-	jobs := BuildCosmosValJobs(nil, nil, []CosmosChain{chain})
+	jobs := BuildCosmosValJobs(nil, nil, chains)
 
-	require.Len(t, jobs, 4)
+	require.Len(t, jobs, 3)
 	require.Equal(t, time.Second, jobs[0].Interval())
-	require.Equal(t, 15*time.Second, jobs[1].Interval())
-	require.Equal(t, time.Second, jobs[2].Interval())
-	require.Equal(t, 15*time.Second, jobs[3].Interval())
+	require.Equal(t, time.Second, jobs[1].Interval())
+	require.Equal(t, defaultInterval, jobs[2].Interval())
 }
 
 func TestCosmosValJob_String(t *testing.T) {
 	t.Parallel()
 
 	chain := CosmosChain{
+		ChainID: "cosmoshub-4",
 		Rest: []Endpoint{
-			{URL: "http://cosmos.example.com", Interval: time.Second},
+			{URL: "http://cosmos.example.com"},
 		},
 
 		Validators: []CosmosValidator{
@@ -75,7 +68,7 @@ func TestCosmosValJob_String(t *testing.T) {
 	jobs := BuildCosmosValJobs(nil, nil, []CosmosChain{chain})
 
 	require.Len(t, jobs, 2)
-	require.Equal(t, "Cosmos validator cosmosvalcons123: http://cosmos.example.com", jobs[0].String())
+	require.Equal(t, "Cosmos validator cosmosvalcons123: cosmoshub-4", jobs[0].String())
 }
 
 func TestCosmosValJob_Run(t *testing.T) {

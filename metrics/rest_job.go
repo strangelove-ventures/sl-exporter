@@ -45,7 +45,7 @@ func BuildCosmosRestJobs(metrics CosmosMetrics, client CosmosRestClient, chains 
 		jobs = append(jobs, CosmosRestJob{
 			chainID:  chain.ChainID,
 			client:   client,
-			interval: intervalOrDefault(defaultInterval), // TODO(nix) make configurable
+			interval: intervalOrDefault(chain.Interval),
 			metrics:  metrics,
 		})
 	}

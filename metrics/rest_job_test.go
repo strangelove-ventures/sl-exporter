@@ -35,18 +35,13 @@ func TestCosmosRestJob_Interval(t *testing.T) {
 	t.Parallel()
 
 	chains := []CosmosChain{
-		{
-			ChainID: "cosmoshub-4",
-			Rest:    []Endpoint{{URL: "http://cosmos.example.com", Interval: time.Second}, {}},
-		},
-		{
-			ChainID: "akash-1234",
-			Rest:    []Endpoint{{URL: "http://akash.example.com"}},
-		},
+		{Interval: time.Second},
+		{},
 	}
 
 	jobs := BuildCosmosRestJobs(nil, nil, chains)
 
+	require.Len(t, jobs, 2)
 	require.Equal(t, time.Second, jobs[0].Interval())
 	require.Equal(t, 15*time.Second, jobs[1].Interval())
 }
@@ -55,15 +50,12 @@ func TestCosmosRestJob_String(t *testing.T) {
 	t.Parallel()
 
 	chains := []CosmosChain{
-		{
-			ChainID: "cosmoshub-4",
-			Rest:    []Endpoint{{URL: "http://cosmos.example.com", Interval: time.Second}, {}},
-		},
+		{ChainID: "cosmoshub-4"},
 	}
 
 	jobs := BuildCosmosRestJobs(nil, nil, chains)
 
-	require.Equal(t, "Cosmos REST http://cosmos.example.com", jobs[0].String())
+	require.Equal(t, "Cosmos REST cosmoshub-4", jobs[0].String())
 }
 
 func TestCosmosRestJob_Run(t *testing.T) {
