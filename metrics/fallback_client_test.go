@@ -173,7 +173,7 @@ func TestFallbackClient_Get(t *testing.T) {
 		}
 	})
 
-	t.Run("context cancelled error", func(t *testing.T) {
+	t.Run("context canceled error", func(t *testing.T) {
 		var metrics mockClientMetrics
 		client := NewFallbackClient(nil, &metrics, "test", []url.URL{{Host: "error.example.com"}})
 		client.log = nopLogger
