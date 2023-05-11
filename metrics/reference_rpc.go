@@ -9,6 +9,7 @@ import (
 // ReferenceRPC records metrics for external RPC calls.
 type ReferenceRPC struct {
 	errorCounter *prometheus.CounterVec
+	// TODO(nix): Count requests and histogram of latency.
 }
 
 func NewReferenceRPC() *ReferenceRPC {
