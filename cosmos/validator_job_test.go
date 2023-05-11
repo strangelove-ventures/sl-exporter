@@ -1,20 +1,19 @@
-package metrics
+package cosmos
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"github.com/stretchr/testify/require"
 )
 
 type mockValRestClient struct {
 	SigningStatusAddress string
-	StubSigningStatus    cosmos.SigningStatus
+	StubSigningStatus    SigningStatus
 }
 
-func (m *mockValRestClient) SigningStatus(ctx context.Context, consaddress string) (cosmos.SigningStatus, error) {
+func (m *mockValRestClient) SigningStatus(ctx context.Context, consaddress string) (SigningStatus, error) {
 	_, ok := ctx.Deadline()
 	if !ok {
 		panic("expected deadline in context")
@@ -35,15 +34,15 @@ func (m *mockValMetrics) SetValJailStatus(chain, consaddress string, status Jail
 	m.ValJailStatus = status
 }
 
-func TestCosmosValJob_Interval(t *testing.T) {
+func TestValidatorJob_Interval(t *testing.T) {
 	t.Parallel()
 
-	chains := []CosmosChain{
-		{Interval: time.Second, Validators: []CosmosValidator{{ConsAddress: "1"}, {ConsAddress: "2"}}},
-		{Validators: []CosmosValidator{{ConsAddress: "3"}}}, // empty chain
+	chains := []Chain{
+		{Interval: time.Second, Validators: []Validator{{ConsAddress: "1"}, {ConsAddress: "2"}}},
+		{Validators: []Validator{{ConsAddress: "3"}}}, // empty chain
 	}
 
-	jobs := BuildCosmosValJobs(nil, nil, chains)
+	jobs := BuildValidatorJobs(nil, nil, chains)
 
 	require.Len(t, jobs, 3)
 	require.Equal(t, time.Second, jobs[0].Interval())
@@ -51,36 +50,36 @@ func TestCosmosValJob_Interval(t *testing.T) {
 	require.Equal(t, defaultInterval, jobs[2].Interval())
 }
 
-func TestCosmosValJob_String(t *testing.T) {
+func TestValidatorJob_String(t *testing.T) {
 	t.Parallel()
 
-	chain := CosmosChain{
+	chain := Chain{
 		ChainID: "cosmoshub-4",
 		Rest: []Endpoint{
 			{URL: "http://cosmos.example.com"},
 		},
 
-		Validators: []CosmosValidator{
+		Validators: []Validator{
 			{ConsAddress: "cosmosvalcons123"},
 			{ConsAddress: "cosmosvalcons567"},
 		},
 	}
-	jobs := BuildCosmosValJobs(nil, nil, []CosmosChain{chain})
+	jobs := BuildValidatorJobs(nil, nil, []Chain{chain})
 
 	require.Len(t, jobs, 2)
 	require.Equal(t, "Cosmos validator cosmosvalcons123: cosmoshub-4", jobs[0].String())
 }
 
-func TestCosmosValJob_Run(t *testing.T) {
+func TestValdatorJob_Run(t *testing.T) {
 	t.Parallel()
 
-	chain := CosmosChain{
+	chain := Chain{
 		ChainID: "cosmoshub-4",
 		Rest: []Endpoint{
 			{URL: "http://cosmos.example.com"},
 		},
 
-		Validators: []CosmosValidator{
+		Validators: []Validator{
 			{ConsAddress: "cosmosvalcons123"},
 		},
 	}
@@ -99,7 +98,7 @@ func TestCosmosValJob_Run(t *testing.T) {
 			// Tombstoned takes precedence
 			{now.Add(time.Hour), true, JailStatusTombstoned},
 		} {
-			var status cosmos.SigningStatus
+			var status SigningStatus
 			status.ValSigningInfo.Tombstoned = tt.Tombstoned
 			status.ValSigningInfo.JailedUntil = tt.JailedUntil
 			var client mockValRestClient
@@ -107,7 +106,7 @@ func TestCosmosValJob_Run(t *testing.T) {
 
 			var metrics mockValMetrics
 
-			jobs := BuildCosmosValJobs(&metrics, &client, []CosmosChain{chain})
+			jobs := BuildValidatorJobs(&metrics, &client, []Chain{chain})
 
 			require.Len(t, jobs, 1)
 			err := jobs[0].Run(context.Background())
@@ -122,7 +121,7 @@ func TestCosmosValJob_Run(t *testing.T) {
 	})
 
 	t.Run("zero state", func(t *testing.T) {
-		jobs := BuildCosmosValJobs(nil, nil, nil)
+		jobs := BuildValidatorJobs(nil, nil, nil)
 
 		require.Empty(t, jobs)
 	})
