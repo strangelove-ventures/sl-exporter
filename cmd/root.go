@@ -59,26 +59,18 @@ func Execute() {
 	// Register static metrics
 	registry.MustRegister(metrics.BuildStatic(cfg.Static.Gauges)...)
 
+	// Register reference rpc metrics
+	refMets := metrics.NewReferenceRPC()
+	registry.MustRegister(refMets.Metrics()...)
+
 	// Register cosmos chain metrics
 	cosmosMets := metrics.NewCosmos()
 	registry.MustRegister(cosmosMets.Metrics()...)
 
+	// Build all jobs
 	var jobs []metrics.Job
-
-	// Initialize Cosmos Rest jobs
-	// TODO(nix): Temporary. Will introduce fallback mechanism.
-	u, err := url.Parse(cfg.Cosmos[0].Rest[0].URL)
-	if err != nil {
-		panic(err)
-	}
-	// TODO(nix): Need different rest clients per chain. This hack prevents > 1 chain.
-	restClient := cosmos.NewRestClient(httpClient, *u)
-	restJobs := cosmos.BuildRestJobs(cosmosMets, restClient, cfg.Cosmos)
-	jobs = append(jobs, toJobs(restJobs)...)
-
-	// Initialize Cosmos validator jobs
-	valJobs := cosmos.BuildValidatorJobs(cosmosMets, restClient, cfg.Cosmos)
-	jobs = append(jobs, toJobs(valJobs)...)
+	cosmosJobs := buildCosmosJobs(cosmosMets, refMets, cfg)
+	jobs = append(jobs, cosmosJobs...)
 
 	// Configure error group with signal handling.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -131,6 +123,28 @@ func Execute() {
 func logFatal(msg string, err error) {
 	slog.Error(msg, "error", err)
 	os.Exit(1)
+}
+
+func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceRPC, cfg Config) (jobs []metrics.Job) {
+	// TODO(nix): Need different rest clients per chain. This hack prevents > 1 chain.
+	var urls []url.URL
+	for _, rest := range cfg.Cosmos[0].Rest {
+		u, err := url.Parse(rest.URL)
+		if err != nil {
+			logFatal("Failed to parse rest url", err)
+		}
+		urls = append(urls, *u)
+	}
+
+	const rpcType = "cosmos"
+	restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, rpcType, urls))
+
+	restJobs := cosmos.BuildRestJobs(cosmosMets, restClient, cfg.Cosmos)
+	jobs = append(jobs, toJobs(restJobs)...)
+	valJobs := cosmos.BuildValidatorJobs(cosmosMets, restClient, cfg.Cosmos)
+	jobs = append(jobs, toJobs(valJobs)...)
+
+	return jobs
 }
 
 func toJobs[T metrics.Job](jobs []T) []metrics.Job {
