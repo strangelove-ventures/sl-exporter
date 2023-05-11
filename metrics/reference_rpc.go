@@ -18,7 +18,7 @@ func NewReferenceRPC() *ReferenceRPC {
 		errorCounter: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: prometheus.BuildFQName(Namespace, subsystem, "error_count"),
-				Help: "Number of errors encountered while making external RPC calls.",
+				Help: "Number of errors encountered while making external RPC, API, or GRPC calls.",
 			},
 			[]string{"type", "host", "reason"},
 		),
