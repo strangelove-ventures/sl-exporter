@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"runtime"
@@ -64,19 +65,19 @@ func Execute() {
 
 	var jobs []metrics.Job
 
-	// Initialize Comsos Rest jobs
-	restClient := cosmos.NewRestClient(httpClient)
-	restJobs, err := metrics.BuildCosmosRestJobs(cosmosMets, restClient, cfg.Cosmos)
+	// Initialize Cosmos Rest jobs
+	// TODO(nix): Temporary. Will introduce fallback mechanism.
+	u, err := url.Parse(cfg.Cosmos[0].Rest[0].URL)
 	if err != nil {
-		logFatal("Failed to create cosmos rest jobs", err)
+		panic(err)
 	}
+	// TODO(nix): Need different rest clients per chain. This hack prevents > 1 chain.
+	restClient := cosmos.NewRestClient(httpClient, *u)
+	restJobs := metrics.BuildCosmosRestJobs(cosmosMets, restClient, cfg.Cosmos)
 	jobs = append(jobs, toJobs(restJobs)...)
 
 	// Initialize Cosmos validator jobs
-	valJobs, err := metrics.BuildCosmosValJobs(cosmosMets, restClient, cfg.Cosmos)
-	if err != nil {
-		logFatal("Failed to create cosmos validator jobs", err)
-	}
+	valJobs := metrics.BuildCosmosValJobs(cosmosMets, restClient, cfg.Cosmos)
 	jobs = append(jobs, toJobs(valJobs)...)
 
 	// Configure error group with signal handling.

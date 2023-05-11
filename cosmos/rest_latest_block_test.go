@@ -21,8 +21,11 @@ func TestClient_LatestBlock(t *testing.T) {
 	type dummy string // Passes lint
 	ctx := context.WithValue(context.Background(), dummy("foo"), dummy("bar"))
 
+	baseURL, err := url.Parse("https://api.example.com:443")
+	require.NoError(t, err)
+
 	t.Run("happy path", func(t *testing.T) {
-		client := NewRestClient(http.DefaultClient)
+		client := NewRestClient(http.DefaultClient, *baseURL)
 		require.NotNil(t, client.httpDo)
 
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
@@ -36,30 +39,27 @@ func TestClient_LatestBlock(t *testing.T) {
 			}, nil
 		}
 
-		u, err := url.Parse("https://api.example.com:443")
-		require.NoError(t, err)
-
-		got, err := client.LatestBlock(ctx, *u)
+		got, err := client.LatestBlock(ctx)
 		require.NoError(t, err)
 
 		require.Equal(t, "15226219", got.Block.Header.Height)
 	})
 
 	t.Run("http error", func(t *testing.T) {
-		client := NewRestClient(http.DefaultClient)
+		client := NewRestClient(http.DefaultClient, *baseURL)
 
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
 			return nil, errors.New("http error")
 		}
 
-		_, err := client.LatestBlock(ctx, url.URL{})
+		_, err := client.LatestBlock(ctx)
 
 		require.Error(t, err)
 		require.EqualError(t, err, "http error")
 	})
 
 	t.Run("bad status code", func(t *testing.T) {
-		client := NewRestClient(http.DefaultClient)
+		client := NewRestClient(http.DefaultClient, *baseURL)
 		require.NotNil(t, client.httpDo)
 
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
@@ -70,7 +70,7 @@ func TestClient_LatestBlock(t *testing.T) {
 			}, nil
 		}
 
-		_, err := client.LatestBlock(ctx, url.URL{})
+		_, err := client.LatestBlock(ctx)
 
 		require.Error(t, err)
 		require.EqualError(t, err, "internal server error")

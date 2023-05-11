@@ -3,7 +3,6 @@ package metrics
 import (
 	"fmt"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -19,10 +18,7 @@ func TestCosmos_SetNodeHeight(t *testing.T) {
 		cosmos := NewCosmos()
 		reg.MustRegister(cosmos.Metrics()[0])
 
-		u, err := url.Parse("http://cosmos.api.example.com:26657?timeout=10s")
-		require.NoError(t, err)
-
-		cosmos.SetNodeHeight("cosmoshub-4", *u, 12345)
+		cosmos.SetNodeHeight("cosmoshub-4", 12345)
 
 		h := metricsHandler(reg)
 		r := httptest.NewRecorder()
@@ -30,7 +26,7 @@ func TestCosmos_SetNodeHeight(t *testing.T) {
 
 		const want = `# HELP sl_exporter_cosmos_latest_block_height Latest block height of a cosmos node.
 # TYPE sl_exporter_cosmos_latest_block_height gauge
-sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4",source="cosmos.api.example.com"} 12345
+sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4"} 12345
 `
 		require.Equal(t, strings.TrimSpace(want), strings.TrimSpace(r.Body.String()))
 	})
@@ -40,17 +36,13 @@ sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4",source="cosmos.api
 		cosmos := NewCosmos()
 		reg.MustRegister(cosmos.Metrics()...)
 
-		// Some nodes, like Strangelove's Voyager API, use one hostname and different paths for different chains.
-		u, err := url.Parse("http://api.example.com:26657/v1/cosmos")
-		require.NoError(t, err)
-
-		cosmos.SetNodeHeight("cosmoshub-4", *u, 12345)
+		cosmos.SetNodeHeight("cosmoshub-4", 12345)
 
 		h := metricsHandler(reg)
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
-		const want = `sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4",source="api.example.com/v1/cosmos"} 12345`
+		const want = `sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4"} 12345`
 		require.Contains(t, r.Body.String(), want)
 	})
 }
@@ -62,8 +54,6 @@ func TestCosmos_SetValJailStatus(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(cosmos.Metrics()[1])
 	h := metricsHandler(reg)
-	u, err := url.Parse("http://cosmos.api.example.com:26657/v1/cosmos?timeout=10s")
-	require.NoError(t, err)
 
 	for _, tt := range []struct {
 		Status    JailStatus
@@ -73,7 +63,7 @@ func TestCosmos_SetValJailStatus(t *testing.T) {
 		{Status: JailStatusJailed, WantValue: 1},
 		{Status: JailStatusTombstoned, WantValue: 2},
 	} {
-		cosmos.SetValJailStatus("cosmoshub-4", "cosmosvalcons123", *u, tt.Status)
+		cosmos.SetValJailStatus("cosmoshub-4", "cosmosvalcons123", tt.Status)
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
@@ -84,7 +74,7 @@ func TestCosmos_SetValJailStatus(t *testing.T) {
 		require.Contains(t, strings.TrimSpace(r.Body.String()), strings.TrimSpace(wantInfo), tt)
 
 		want := fmt.Sprintf(`
-sl_exporter_cosmos_val_latest_jailed_status{address="cosmosvalcons123",chain_id="cosmoshub-4",source="cosmos.api.example.com/v1/cosmos"} %d`,
+sl_exporter_cosmos_val_latest_jailed_status{address="cosmosvalcons123",chain_id="cosmoshub-4"} %d`,
 			tt.WantValue)
 
 		require.Contains(t, strings.TrimSpace(r.Body.String()), strings.TrimSpace(want), tt)
