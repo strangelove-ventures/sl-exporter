@@ -2,9 +2,11 @@ package metrics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type FallbackClient struct {
@@ -15,7 +17,7 @@ type FallbackClient struct {
 }
 
 type ClientMetrics interface {
-	IncClientError(rpcType string, host url.URL, errMsg string)
+	IncClientError(rpcType string, host url.URL, reason string)
 	// TODO(nix): Metrics for request counts. Latency histogram.
 }
 
@@ -31,11 +33,14 @@ func NewFallbackClient(client *http.Client, metrics ClientMetrics, rpcType strin
 	}
 }
 
+const unknownErrReason = "unknown"
+
 func (c FallbackClient) Get(ctx context.Context, path string, headers map[string]string) (*http.Response, error) {
 	doGet := func(host url.URL) (*http.Response, error) {
 		host.Path = path
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, host.String(), nil)
 		if err != nil {
+			c.recordErrMetric(host, err)
 			return nil, err
 		}
 		for k, v := range headers {
@@ -43,11 +48,13 @@ func (c FallbackClient) Get(ctx context.Context, path string, headers map[string
 		}
 		resp, err := c.httpDo(req)
 		if err != nil {
+			c.recordErrMetric(host, err)
 			return nil, err
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			_ = resp.Body.Close()
-			return nil, fmt.Errorf("bad status code %d", resp.StatusCode)
+			c.metrics.IncClientError(c.rpcType, host, strconv.Itoa(resp.StatusCode))
+			return nil, fmt.Errorf("%s: bad status code %d", req.URL, resp.StatusCode)
 		}
 		return resp, nil
 	}
@@ -62,4 +69,16 @@ func (c FallbackClient) Get(ctx context.Context, path string, headers map[string
 		return resp, nil
 	}
 	return nil, lastErr
+}
+
+func (c FallbackClient) recordErrMetric(host url.URL, err error) {
+	reason := unknownErrReason
+	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		reason = "timeout"
+	case errors.Is(err, context.Canceled):
+		// Do not record when the process is shutting down.
+		return
+	}
+	c.metrics.IncClientError(c.rpcType, host, reason)
 }

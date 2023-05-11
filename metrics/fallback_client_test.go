@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -11,6 +12,20 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+type mockClientMetrics struct {
+	IncClientErrCalls int
+	GotRPCType        string
+	GotHost           url.URL
+	GotErrMsg         string
+}
+
+func (m *mockClientMetrics) IncClientError(rpcType string, host url.URL, errMsg string) {
+	m.IncClientErrCalls++
+	m.GotRPCType = rpcType
+	m.GotHost = host
+	m.GotErrMsg = errMsg
+}
 
 func TestFallbackClient_Get(t *testing.T) {
 	urls := []url.URL{
@@ -46,7 +61,8 @@ func TestFallbackClient_Get(t *testing.T) {
 	})
 
 	t.Run("fallback on error", func(t *testing.T) {
-		client := NewFallbackClient(nil, nil, "test", urls)
+		var metrics mockClientMetrics
+		client := NewFallbackClient(nil, &metrics, "test", urls)
 
 		var callCount int
 		stubResp := &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}
@@ -72,7 +88,8 @@ func TestFallbackClient_Get(t *testing.T) {
 	})
 
 	t.Run("fallback on bad status code", func(t *testing.T) {
-		client := NewFallbackClient(nil, nil, "test", urls)
+		var metrics mockClientMetrics
+		client := NewFallbackClient(nil, &metrics, "test", urls)
 
 		var callCount int
 		stubResp := &http.Response{StatusCode: http.StatusAccepted, Body: http.NoBody}
@@ -98,7 +115,8 @@ func TestFallbackClient_Get(t *testing.T) {
 
 	t.Run("all errors", func(t *testing.T) {
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		client := NewFallbackClient(nil, nil, "test", urls)
+		var metrics mockClientMetrics
+		client := NewFallbackClient(nil, &metrics, "test", urls)
 
 		var callCount int
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
@@ -119,5 +137,48 @@ func TestFallbackClient_Get(t *testing.T) {
 		_, err := client.Get(ctx, "", nil)
 
 		require.Error(t, err)
+	})
+
+	t.Run("error metrics", func(t *testing.T) {
+		for _, tt := range []struct {
+			Err      error
+			Response *http.Response
+			WantMsg  string
+		}{
+			{errors.New("boom"), nil, "unknown"},
+			{fmt.Errorf("deadline: %w", context.DeadlineExceeded), nil, "timeout"},
+			{nil, &http.Response{StatusCode: http.StatusNotFound}, "404"},
+		} {
+			var metrics mockClientMetrics
+			client := NewFallbackClient(nil, &metrics, "test", []url.URL{{Host: "error.example.com"}})
+
+			client.httpDo = func(req *http.Request) (*http.Response, error) {
+				if tt.Response != nil {
+					tt.Response.Body = http.NoBody
+				}
+				return tt.Response, tt.Err
+			}
+
+			//nolint
+			_, _ = client.Get(ctx, "", nil)
+
+			require.Equal(t, "test", metrics.GotRPCType, tt)
+			require.Equal(t, "error.example.com", metrics.GotHost.Hostname(), tt)
+			require.Equal(t, tt.WantMsg, metrics.GotErrMsg, tt)
+		}
+	})
+
+	t.Run("context cancelled error", func(t *testing.T) {
+		var metrics mockClientMetrics
+		client := NewFallbackClient(nil, &metrics, "test", []url.URL{{Host: "error.example.com"}})
+
+		client.httpDo = func(req *http.Request) (*http.Response, error) {
+			return nil, errors.Join(context.Canceled)
+		}
+
+		//nolint
+		_, _ = client.Get(ctx, "", nil)
+
+		require.Zero(t, metrics.IncClientErrCalls)
 	})
 }
