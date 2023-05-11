@@ -27,5 +27,4 @@ func TestReferenceRPC_IncClientError(t *testing.T) {
 # TYPE sl_exporter_reference_rpc_error_count counter
 sl_exporter_reference_rpc_error_count{host="test.example",reason="timeout",type="cosmos-lcd"} 1`
 	require.Equal(t, strings.TrimSpace(want), strings.TrimSpace(r.Body.String()))
-
 }

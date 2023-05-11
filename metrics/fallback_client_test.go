@@ -47,12 +47,10 @@ func TestFallbackClient_Get(t *testing.T) {
 			require.Same(t, ctx, req.Context())
 			require.Equal(t, "GET", req.Method)
 			require.Equal(t, "http://1.example.com/v1/foo", req.URL.String())
-			require.Equal(t, "Bar", req.Header.Get("X-Foo"))
 			return stubResp, nil
 		}
 
-		headers := map[string]string{"X-Foo": "Bar"}
-		resp, err := client.Get(ctx, "/v1/foo", headers)
+		resp, err := client.Get(ctx, "/v1/foo")
 		require.NoError(t, resp.Body.Close())
 
 		require.NoError(t, err)
@@ -74,12 +72,10 @@ func TestFallbackClient_Get(t *testing.T) {
 			require.Same(t, ctx, req.Context())
 			require.Equal(t, "GET", req.Method)
 			require.Equal(t, "http://2.example.com/v1/foo", req.URL.String())
-			require.Equal(t, "Bar", req.Header.Get("X-Foo"))
 			return stubResp, nil
 		}
 
-		headers := map[string]string{"X-Foo": "Bar"}
-		resp, err := client.Get(ctx, "/v1/foo", headers)
+		resp, err := client.Get(ctx, "/v1/foo")
 		require.NoError(t, resp.Body.Close())
 
 		require.NoError(t, err)
@@ -105,7 +101,7 @@ func TestFallbackClient_Get(t *testing.T) {
 			return stubResp, nil
 		}
 
-		resp, err := client.Get(ctx, "", nil)
+		resp, err := client.Get(ctx, "")
 		require.NoError(t, resp.Body.Close())
 
 		require.NoError(t, err)
@@ -134,7 +130,7 @@ func TestFallbackClient_Get(t *testing.T) {
 		}
 
 		//nolint
-		_, err := client.Get(ctx, "", nil)
+		_, err := client.Get(ctx, "")
 
 		require.Error(t, err)
 	})
@@ -160,7 +156,7 @@ func TestFallbackClient_Get(t *testing.T) {
 			}
 
 			//nolint
-			_, _ = client.Get(ctx, "", nil)
+			_, _ = client.Get(ctx, "")
 
 			require.Equal(t, "test", metrics.GotRPCType, tt)
 			require.Equal(t, "error.example.com", metrics.GotHost.Hostname(), tt)
@@ -177,7 +173,7 @@ func TestFallbackClient_Get(t *testing.T) {
 		}
 
 		//nolint
-		_, _ = client.Get(ctx, "", nil)
+		_, _ = client.Get(ctx, "")
 
 		require.Zero(t, metrics.IncClientErrCalls)
 	})

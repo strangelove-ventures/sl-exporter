@@ -35,16 +35,13 @@ func NewFallbackClient(client *http.Client, metrics ClientMetrics, rpcType strin
 
 const unknownErrReason = "unknown"
 
-func (c FallbackClient) Get(ctx context.Context, path string, headers map[string]string) (*http.Response, error) {
+func (c FallbackClient) Get(ctx context.Context, path string) (*http.Response, error) {
 	doGet := func(host url.URL) (*http.Response, error) {
 		host.Path = path
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, host.String(), nil)
 		if err != nil {
 			c.recordErrMetric(host, err)
 			return nil, err
-		}
-		for k, v := range headers {
-			req.Header.Set(k, v)
 		}
 		resp, err := c.httpDo(req)
 		if err != nil {
