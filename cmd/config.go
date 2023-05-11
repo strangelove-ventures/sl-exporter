@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/viper"
+	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"github.com/strangelove-ventures/sl-exporter/metrics"
 )
 
@@ -17,7 +18,7 @@ type Config struct {
 		Gauges []metrics.StaticGauge
 	}
 
-	Cosmos []metrics.CosmosChain
+	Cosmos []cosmos.Chain
 }
 
 func parseConfig(cfg *Config) error {

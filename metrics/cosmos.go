@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/strangelove-ventures/sl-exporter/cosmos"
 )
 
 // Cosmos records metrics for Cosmos chains
@@ -36,18 +37,9 @@ func (c *Cosmos) SetNodeHeight(chain string, height float64) {
 	c.heightGauge.WithLabelValues(chain).Set(height)
 }
 
-// JailStatus is the status of a validator.
-type JailStatus int
-
-const (
-	JailStatusActive JailStatus = iota
-	JailStatusJailed
-	JailStatusTombstoned
-)
-
 // SetValJailStatus records the jailed status of a validator.
 // In this context, "active" does not mean part of the validator active set, only that the validator is not jailed.
-func (c *Cosmos) SetValJailStatus(chain, consaddress string, status JailStatus) {
+func (c *Cosmos) SetValJailStatus(chain, consaddress string, status cosmos.JailStatus) {
 	c.valJailGauge.WithLabelValues(chain, consaddress).Set(float64(status))
 }
 

@@ -73,11 +73,11 @@ func Execute() {
 	}
 	// TODO(nix): Need different rest clients per chain. This hack prevents > 1 chain.
 	restClient := cosmos.NewRestClient(httpClient, *u)
-	restJobs := metrics.BuildCosmosRestJobs(cosmosMets, restClient, cfg.Cosmos)
+	restJobs := cosmos.BuildRestJobs(cosmosMets, restClient, cfg.Cosmos)
 	jobs = append(jobs, toJobs(restJobs)...)
 
 	// Initialize Cosmos validator jobs
-	valJobs := metrics.BuildCosmosValJobs(cosmosMets, restClient, cfg.Cosmos)
+	valJobs := cosmos.BuildValidatorJobs(cosmosMets, restClient, cfg.Cosmos)
 	jobs = append(jobs, toJobs(valJobs)...)
 
 	// Configure error group with signal handling.

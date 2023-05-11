@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,10 +16,10 @@ func TestCosmos_SetNodeHeight(t *testing.T) {
 
 	t.Run("happy path", func(t *testing.T) {
 		reg := prometheus.NewRegistry()
-		cosmos := NewCosmos()
-		reg.MustRegister(cosmos.Metrics()[0])
+		metrics := NewCosmos()
+		reg.MustRegister(metrics.Metrics()[0])
 
-		cosmos.SetNodeHeight("cosmoshub-4", 12345)
+		metrics.SetNodeHeight("cosmoshub-4", 12345)
 
 		h := metricsHandler(reg)
 		r := httptest.NewRecorder()
@@ -33,10 +34,10 @@ sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4"} 12345
 
 	t.Run("url with path", func(t *testing.T) {
 		reg := prometheus.NewRegistry()
-		cosmos := NewCosmos()
-		reg.MustRegister(cosmos.Metrics()...)
+		metrics := NewCosmos()
+		reg.MustRegister(metrics.Metrics()...)
 
-		cosmos.SetNodeHeight("cosmoshub-4", 12345)
+		metrics.SetNodeHeight("cosmoshub-4", 12345)
 
 		h := metricsHandler(reg)
 		r := httptest.NewRecorder()
@@ -50,20 +51,20 @@ sl_exporter_cosmos_latest_block_height{chain_id="cosmoshub-4"} 12345
 func TestCosmos_SetValJailStatus(t *testing.T) {
 	t.Parallel()
 
-	cosmos := NewCosmos()
+	metrics := NewCosmos()
 	reg := prometheus.NewRegistry()
-	reg.MustRegister(cosmos.Metrics()[1])
+	reg.MustRegister(metrics.Metrics()[1])
 	h := metricsHandler(reg)
 
 	for _, tt := range []struct {
-		Status    JailStatus
+		Status    cosmos.JailStatus
 		WantValue int
 	}{
-		{Status: JailStatusActive, WantValue: 0},
-		{Status: JailStatusJailed, WantValue: 1},
-		{Status: JailStatusTombstoned, WantValue: 2},
+		{Status: cosmos.JailStatusActive, WantValue: 0},
+		{Status: cosmos.JailStatusJailed, WantValue: 1},
+		{Status: cosmos.JailStatusTombstoned, WantValue: 2},
 	} {
-		cosmos.SetValJailStatus("cosmoshub-4", "cosmosvalcons123", tt.Status)
+		metrics.SetValJailStatus("cosmoshub-4", "cosmosvalcons123", tt.Status)
 		r := httptest.NewRecorder()
 		h.ServeHTTP(r, stubRequest)
 
