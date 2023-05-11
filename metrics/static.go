@@ -16,10 +16,11 @@ type StaticSample struct {
 
 // BuildStatic returns static metrics
 func BuildStatic(gauges []StaticGauge) []prometheus.Collector {
+	const subsystem = "static"
 	metrics := make([]prometheus.Collector, len(gauges))
 	for i, g := range gauges {
 		gaugeVec := prometheus.NewGaugeVec(
-			prometheus.GaugeOpts{Name: prometheus.BuildFQName(Namespace, NoSubsystem, g.Name), Help: g.Description},
+			prometheus.GaugeOpts{Name: prometheus.BuildFQName(namespace, subsystem, g.Name), Help: g.Description},
 			g.Labels,
 		)
 		for _, sample := range g.Samples {

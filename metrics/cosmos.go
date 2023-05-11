@@ -12,10 +12,15 @@ type Cosmos struct {
 }
 
 func NewCosmos() *Cosmos {
+	const (
+		cosmosSubsystem    = "cosmos"
+		cosmosValSubsystem = cosmosSubsystem + "_val"
+	)
+
 	return &Cosmos{
 		heightGauge: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: prometheus.BuildFQName(Namespace, CosmosSubsystem, "latest_block_height"),
+				Name: prometheus.BuildFQName(namespace, cosmosSubsystem, "latest_block_height"),
 				Help: "Latest block height of a cosmos node.",
 			},
 			// labels
@@ -23,7 +28,7 @@ func NewCosmos() *Cosmos {
 		),
 		valJailGauge: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: prometheus.BuildFQName(Namespace, CosmosValSubsystem, "latest_jailed_status"),
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_jailed_status"),
 				Help: "0 if the validator is not jailed. 1 if the validator is jailed. 2 if the validator is tombstoned.",
 			},
 			// labels
