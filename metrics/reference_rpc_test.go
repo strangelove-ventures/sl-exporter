@@ -17,7 +17,10 @@ func TestReferenceRPC_IncClientError(t *testing.T) {
 	metrics := NewReferenceRPC()
 	reg.MustRegister(metrics.Metrics()[0])
 
-	metrics.IncClientError("cosmos-lcd", url.URL{Host: "test.example"}, "timeout")
+	u, err := url.Parse("http://test.example/should/not/be/used")
+	require.NoError(t, err)
+
+	metrics.IncClientError("cosmos-lcd", *u, "timeout")
 
 	h := metricsHandler(reg)
 	r := httptest.NewRecorder()
