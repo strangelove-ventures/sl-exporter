@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"golang.org/x/exp/slog"
 )
 
 type FallbackClient struct {
 	hosts   []url.URL
 	httpDo  func(req *http.Request) (*http.Response, error)
+	log     *slog.Logger
 	metrics ClientMetrics
 	rpcType string
 }
@@ -28,6 +31,7 @@ func NewFallbackClient(client *http.Client, metrics ClientMetrics, rpcType strin
 	return &FallbackClient{
 		hosts:   hosts,
 		httpDo:  client.Do,
+		log:     slog.Default(),
 		metrics: metrics,
 		rpcType: rpcType,
 	}
@@ -37,19 +41,23 @@ const unknownErrReason = "unknown"
 
 func (c FallbackClient) Get(ctx context.Context, path string) (*http.Response, error) {
 	doGet := func(host url.URL) (*http.Response, error) {
+		log := c.log.With("host", host.Hostname(), "path", path, "rpc", c.rpcType)
 		host.Path = path
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, host.String(), nil)
 		if err != nil {
+			log.Error("Failed to create request", "error", err)
 			c.recordErrMetric(host, err)
 			return nil, err
 		}
 		resp, err := c.httpDo(req)
 		if err != nil {
+			log.Error("Failed to send request", "error", err)
 			c.recordErrMetric(host, err)
 			return nil, err
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			_ = resp.Body.Close()
+			log.Error("Response returned bad status code", "status", resp.StatusCode)
 			c.metrics.IncClientError(c.rpcType, host, strconv.Itoa(resp.StatusCode))
 			return nil, fmt.Errorf("%s: bad status code %d", req.URL, resp.StatusCode)
 		}
