@@ -23,11 +23,10 @@ func NewRestClient(c *http.Client, baseURL url.URL) *RestClient {
 
 // response must be a pointer to a datatype (typically a struct)
 func (c RestClient) get(ctx context.Context, url string, response any) error {
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("malformed request: %w", err)
 	}
-	req = req.WithContext(ctx)
 	resp, err := c.httpDo(req)
 	if err != nil {
 		return err
