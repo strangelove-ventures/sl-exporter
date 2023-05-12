@@ -13,11 +13,10 @@ type ReferenceAPI struct {
 }
 
 func NewHTTPRequest() *ReferenceAPI {
-	const subsystem = "reference_api"
 	return &ReferenceAPI{
 		errorCounter: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: prometheus.BuildFQName(namespace, subsystem, "error_count"),
+				Name: prometheus.BuildFQName(namespace, refAPISubsystem, "error_count"),
 				Help: "Number of errors encountered while making external calls to an API to gather reference data.",
 			},
 			[]string{"host", "reason"},

@@ -1,8 +1,11 @@
 package metrics
 
 const (
-	namespace          = "sl_exporter"
+	namespace = "sl_exporter"
+
+	// Subsystems
 	staticSubsystem    = "static"
 	cosmosSubsystem    = "cosmos"
 	cosmosValSubsystem = cosmosSubsystem + "_val"
+	refAPISubsystem    = "reference_api"
 )
