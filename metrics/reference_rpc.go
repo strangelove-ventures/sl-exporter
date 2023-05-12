@@ -6,30 +6,30 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// ReferenceRPC records metrics for external RPC calls.
-type ReferenceRPC struct {
+// ReferenceAPI records metrics for external http calls.
+type ReferenceAPI struct {
 	errorCounter *prometheus.CounterVec
 	// TODO(nix): Count requests and histogram of latency.
 }
 
-func NewReferenceRPC() *ReferenceRPC {
-	const subsystem = "reference_rpc"
-	return &ReferenceRPC{
+func NewHTTPRequest() *ReferenceAPI {
+	const subsystem = "reference_api"
+	return &ReferenceAPI{
 		errorCounter: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: prometheus.BuildFQName(Namespace, subsystem, "error_count"),
-				Help: "Number of errors encountered while making external RPC, API, or GRPC calls.",
+				Name: prometheus.BuildFQName(namespace, subsystem, "error_count"),
+				Help: "Number of errors encountered while making external calls to an API to gather reference data.",
 			},
-			[]string{"type", "host", "reason"},
+			[]string{"host", "reason"},
 		),
 	}
 }
 
-func (c ReferenceRPC) IncClientError(rpcType string, host url.URL, reason string) {
-	c.errorCounter.WithLabelValues(rpcType, host.Hostname(), reason).Inc()
+func (c ReferenceAPI) IncAPIError(host url.URL, reason string) {
+	c.errorCounter.WithLabelValues(host.Hostname(), reason).Inc()
 }
 
-func (c ReferenceRPC) Metrics() []prometheus.Collector {
+func (c ReferenceAPI) Metrics() []prometheus.Collector {
 	return []prometheus.Collector{
 		c.errorCounter,
 	}
