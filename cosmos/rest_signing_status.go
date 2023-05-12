@@ -20,8 +20,8 @@ type SigningStatus struct {
 
 // SigningStatus returns the signing status of a validator given the consensus address.
 func (c RestClient) SigningStatus(ctx context.Context, consaddress string) (SigningStatus, error) {
-	c.baseURL.Path = path.Join("/cosmos/slashing/v1beta1/signing_infos", consaddress)
+	p := path.Join("/cosmos/slashing/v1beta1/signing_infos", consaddress)
 	var status SigningStatus
-	err := c.get(ctx, c.baseURL.String(), &status)
+	err := c.get(ctx, p, &status)
 	return status, err
 }

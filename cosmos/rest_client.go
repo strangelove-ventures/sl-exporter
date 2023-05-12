@@ -3,39 +3,31 @@ package cosmos
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 type RestClient struct {
-	baseURL url.URL
-	httpDo  func(req *http.Request) (*http.Response, error)
+	client HTTPClient
 }
 
-func NewRestClient(c *http.Client, baseURL url.URL) *RestClient {
+type HTTPClient interface {
+	Get(ctx context.Context, path string) (*http.Response, error)
+}
+
+func NewRestClient(c HTTPClient) *RestClient {
 	return &RestClient{
-		baseURL: baseURL,
-		httpDo:  c.Do,
+		client: c,
 	}
 }
 
 // response must be a pointer to a datatype (typically a struct)
 func (c RestClient) get(ctx context.Context, url string, response any) error {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return fmt.Errorf("malformed request: %w", err)
-	}
-	req = req.WithContext(ctx)
-	resp, err := c.httpDo(req)
+	resp, err := c.client.Get(ctx, url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
-	}
 	err = json.NewDecoder(resp.Body).Decode(response)
 	if err != nil {
 		return fmt.Errorf("malformed json: %w", err)

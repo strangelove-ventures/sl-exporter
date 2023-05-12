@@ -68,7 +68,6 @@ type Block struct {
 // LatestBlock queries the latest block from the Cosmos REST API given the baseURL.
 func (c RestClient) LatestBlock(ctx context.Context) (Block, error) {
 	var latestBlock Block
-	c.baseURL.Path = "/blocks/latest"
-	err := c.get(ctx, c.baseURL.String(), &latestBlock)
+	err := c.get(ctx, "/blocks/latest", &latestBlock)
 	return latestBlock, err
 }
