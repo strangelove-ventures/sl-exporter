@@ -58,7 +58,7 @@ func (job ValidatorJob) Interval() time.Duration { return job.interval }
 
 // Run executes the job gathering a variety of metrics for cosmos validators.
 func (job ValidatorJob) Run(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, defaultRestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	resp, err := job.client.SigningStatus(ctx, job.consaddress)
 	if err != nil {
