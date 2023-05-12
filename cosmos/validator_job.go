@@ -42,10 +42,10 @@ type ValidatorJob struct {
 	metrics     ValidatorMetrics
 }
 
-func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []*ValidatorJob {
-	var jobs []*ValidatorJob
+func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []ValidatorJob {
+	var jobs []ValidatorJob
 	for _, val := range chain.Validators {
-		jobs = append(jobs, &ValidatorJob{
+		jobs = append(jobs, ValidatorJob{
 			chainID:     chain.ChainID,
 			client:      client,
 			consaddress: val.ConsAddress,
@@ -56,21 +56,21 @@ func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain 
 	return jobs
 }
 
-func (job *ValidatorJob) String() string {
+func (job ValidatorJob) String() string {
 	return fmt.Sprintf("Cosmos validator %s: %s", job.chainID, job.consaddress)
 }
 
-func (job *ValidatorJob) Interval() time.Duration { return job.interval }
+func (job ValidatorJob) Interval() time.Duration { return job.interval }
 
 // Run executes the job gathering a variety of metrics for cosmos validators.
-func (job *ValidatorJob) Run(ctx context.Context) error {
+func (job ValidatorJob) Run(ctx context.Context) error {
 	return errors.Join(
 		job.processSigningStatus(ctx),
 		job.processSignedBlocks(ctx),
 	)
 }
 
-func (job *ValidatorJob) processSignedBlocks(ctx context.Context) error {
+func (job ValidatorJob) processSignedBlocks(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 
@@ -97,7 +97,7 @@ func (job *ValidatorJob) processSignedBlocks(ctx context.Context) error {
 	return nil
 }
 
-func (job *ValidatorJob) processSigningStatus(ctx context.Context) error {
+func (job ValidatorJob) processSigningStatus(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	resp, err := job.client.SigningStatus(ctx, job.consaddress)
