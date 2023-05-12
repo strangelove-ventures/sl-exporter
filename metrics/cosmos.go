@@ -31,7 +31,7 @@ func NewCosmos() *Cosmos {
 		valBlockSignCounter: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "signed_blocks_count"),
-				Help: "Count of blocks signed by a cosmos validator.",
+				Help: "Count of observed blocks signed by a cosmos validator.",
 			},
 			[]string{"chain_id", "address"},
 		),
