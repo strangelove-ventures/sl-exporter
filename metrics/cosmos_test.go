@@ -70,6 +70,6 @@ func TestCosmos_IncValSignedBlocks(t *testing.T) {
 	r := httptest.NewRecorder()
 	h.ServeHTTP(r, stubRequest)
 
-	const want = `sl_exporter_cosmos_val_signed_blocks_count{address="cosmosvalcons123",chain_id="cosmoshub-4"} 2`
+	const want = `sl_exporter_cosmos_val_signed_blocks_total{address="cosmosvalcons123",chain_id="cosmoshub-4"} 2`
 	require.Contains(t, r.Body.String(), want)
 }
