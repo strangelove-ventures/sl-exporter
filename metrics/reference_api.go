@@ -16,7 +16,7 @@ func NewHTTPRequest() *ReferenceAPI {
 	return &ReferenceAPI{
 		errorCounter: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: prometheus.BuildFQName(namespace, refAPISubsystem, "error_count"),
+				Name: prometheus.BuildFQName(namespace, refAPISubsystem, "error_total"),
 				Help: "Number of errors encountered while making external calls to an API to gather reference data.",
 			},
 			[]string{"host", "reason"},

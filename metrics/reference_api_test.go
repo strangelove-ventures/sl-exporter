@@ -25,5 +25,5 @@ func TestReferenceAPI_IncAPIError(t *testing.T) {
 	r := httptest.NewRecorder()
 	h.ServeHTTP(r, stubRequest)
 
-	require.Contains(t, r.Body.String(), `sl_exporter_reference_api_error_count{host="test.example",reason="timeout"} 1`)
+	require.Contains(t, r.Body.String(), `sl_exporter_reference_api_error_total{host="test.example",reason="timeout"} 1`)
 }
