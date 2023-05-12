@@ -39,7 +39,7 @@ const unknownErrReason = "unknown"
 
 func (c FallbackClient) Get(ctx context.Context, path string) (*http.Response, error) {
 	doGet := func(host url.URL) (*http.Response, error) {
-		log := c.log.With("host", host.Hostname(), "path", path)
+		log := c.log.With("host", host.Hostname(), "path", path, "method", http.MethodGet)
 		host.Path = path
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, host.String(), nil)
 		if err != nil {
