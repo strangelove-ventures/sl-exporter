@@ -33,28 +33,19 @@ func (m *mockRestClient) LatestBlock(ctx context.Context) (Block, error) {
 func TestRestJob_Interval(t *testing.T) {
 	t.Parallel()
 
-	chains := []Chain{
-		{Interval: time.Second},
-		{},
-	}
+	job := NewRestJob(nil, nil, Chain{Interval: time.Second})
+	require.Equal(t, time.Second, job.Interval())
 
-	jobs := BuildRestJobs(nil, nil, chains)
-
-	require.Len(t, jobs, 2)
-	require.Equal(t, time.Second, jobs[0].Interval())
-	require.Equal(t, 15*time.Second, jobs[1].Interval())
+	job = NewRestJob(nil, nil, Chain{})
+	require.Equal(t, defaultInterval, job.Interval())
 }
 
 func TestRestJob_String(t *testing.T) {
 	t.Parallel()
 
-	chains := []Chain{
-		{ChainID: "cosmoshub-4"},
-	}
+	job := NewRestJob(nil, nil, Chain{ChainID: "cosmoshub-4"})
 
-	jobs := BuildRestJobs(nil, nil, chains)
-
-	require.Equal(t, "Cosmos REST cosmoshub-4", jobs[0].String())
+	require.Equal(t, "Cosmos REST cosmoshub-4", job.String())
 }
 
 func TestRestJob_Run(t *testing.T) {
@@ -70,23 +61,13 @@ func TestRestJob_Run(t *testing.T) {
 		blk.Block.Header.ChainID = "cosmoshub-4"
 		client.StubBlock = blk
 
-		chains := []Chain{
-			{
-				ChainID: "cosmoshub-4",
-				Rest:    []Endpoint{{URL: "http://cosmos.example.com"}, {}},
-			},
-			{
-				ChainID: "akash-1234",
-				Rest:    []Endpoint{{URL: "http://akash.example.com"}},
-			},
+		chain := Chain{
+			ChainID: "cosmoshub-4",
+			Rest:    []Endpoint{{URL: "http://cosmos.example.com"}, {}},
 		}
 
 		var metrics mockCosmosMetrics
-		jobs := BuildRestJobs(&metrics, &client, chains)
-
-		require.Len(t, jobs, 2)
-
-		job := jobs[0]
+		job := NewRestJob(&metrics, &client, chain)
 
 		err := job.Run(ctx)
 		require.NoError(t, err)

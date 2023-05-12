@@ -38,17 +38,13 @@ type RestJob struct {
 	metrics  Metrics
 }
 
-func BuildRestJobs(metrics Metrics, client Client, chains []Chain) []RestJob {
-	var jobs []RestJob
-	for _, chain := range chains {
-		jobs = append(jobs, RestJob{
-			chainID:  chain.ChainID,
-			client:   client,
-			interval: intervalOrDefault(chain.Interval),
-			metrics:  metrics,
-		})
+func NewRestJob(metrics Metrics, client Client, chain Chain) RestJob {
+	return RestJob{
+		chainID:  chain.ChainID,
+		client:   client,
+		interval: intervalOrDefault(chain.Interval),
+		metrics:  metrics,
 	}
-	return jobs
 }
 
 func (job RestJob) String() string {
@@ -69,7 +65,7 @@ func (job RestJob) Run(ctx context.Context) error {
 		return fmt.Errorf("query /status: %w", err)
 	}
 	if chainID := block.Block.Header.ChainID; chainID != job.chainID {
-		slog.Warn("Mismatched chain id", "expected", job.chainID, "actual", chainID)
+		slog.Warn("Mismatched chain id", "expected", job.chainID, "actual", chainID, "job", job.String())
 	}
 	height, err := strconv.ParseFloat(block.Block.Header.Height, 64)
 	if err != nil {

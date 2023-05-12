@@ -125,23 +125,25 @@ func logFatal(msg string, err error) {
 	os.Exit(1)
 }
 
-func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) (jobs []metrics.Job) {
-	// TODO(nix): Need different rest clients per chain. This hack prevents > 1 chain.
-	var urls []url.URL
-	for _, rest := range cfg.Cosmos[0].Rest {
-		u, err := url.Parse(rest.URL)
-		if err != nil {
-			logFatal("Failed to parse rest url", err)
+func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) []metrics.Job {
+	var jobs []metrics.Job
+
+	for _, chain := range cfg.Cosmos {
+		var urls []url.URL
+		for _, rest := range chain.Rest {
+			u, err := url.Parse(rest.URL)
+			if err != nil {
+				logFatal("Failed to parse cosmos rest url", err)
+			}
+			urls = append(urls, *u)
 		}
-		urls = append(urls, *u)
+
+		restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, urls))
+		restJobs := cosmos.NewRestJob(cosmosMets, restClient, cfg.Cosmos)
+		jobs = append(jobs, toJobs(restJobs)...)
+		valJobs := cosmos.BuildValidatorJobs(cosmosMets, restClient, cfg.Cosmos)
+		jobs = append(jobs, toJobs(valJobs)...)
 	}
-
-	restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, urls))
-
-	restJobs := cosmos.BuildRestJobs(cosmosMets, restClient, cfg.Cosmos)
-	jobs = append(jobs, toJobs(restJobs)...)
-	valJobs := cosmos.BuildValidatorJobs(cosmosMets, restClient, cfg.Cosmos)
-	jobs = append(jobs, toJobs(valJobs)...)
 
 	return jobs
 }
