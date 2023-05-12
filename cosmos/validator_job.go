@@ -34,18 +34,16 @@ type ValidatorJob struct {
 	metrics     ValidatorMetrics
 }
 
-func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chains []Chain) []ValidatorJob {
-	var jobs []ValidatorJob
-	for _, chain := range chains {
-		for _, val := range chain.Validators {
-			jobs = append(jobs, ValidatorJob{
-				chainID:     chain.ChainID,
-				client:      client,
-				consaddress: val.ConsAddress,
-				interval:    intervalOrDefault(chain.Interval),
-				metrics:     metrics,
-			})
-		}
+func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []*ValidatorJob {
+	var jobs []*ValidatorJob
+	for _, val := range chain.Validators {
+		jobs = append(jobs, &ValidatorJob{
+			chainID:     chain.ChainID,
+			client:      client,
+			consaddress: val.ConsAddress,
+			interval:    intervalOrDefault(chain.Interval),
+			metrics:     metrics,
+		})
 	}
 	return jobs
 }
