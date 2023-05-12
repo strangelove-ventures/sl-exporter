@@ -136,8 +136,7 @@ func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, 
 		urls = append(urls, *u)
 	}
 
-	const rpcType = "cosmos"
-	restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, rpcType, urls))
+	restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, urls))
 
 	restJobs := cosmos.BuildRestJobs(cosmosMets, restClient, cfg.Cosmos)
 	jobs = append(jobs, toJobs(restJobs)...)
