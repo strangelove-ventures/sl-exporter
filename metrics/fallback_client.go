@@ -16,15 +16,14 @@ type FallbackClient struct {
 	httpDo  func(req *http.Request) (*http.Response, error)
 	log     *slog.Logger
 	metrics ClientMetrics
-	rpcType string
 }
 
 type ClientMetrics interface {
-	IncClientError(rpcType string, host url.URL, reason string)
+	IncAPIError(host url.URL, reason string)
 	// TODO(nix): Metrics for request counts. Latency histogram.
 }
 
-func NewFallbackClient(client *http.Client, metrics ClientMetrics, rpcType string, hosts []url.URL) *FallbackClient {
+func NewFallbackClient(client *http.Client, metrics ClientMetrics, hosts []url.URL) *FallbackClient {
 	if len(hosts) == 0 {
 		panic("no hosts provided")
 	}
@@ -33,7 +32,6 @@ func NewFallbackClient(client *http.Client, metrics ClientMetrics, rpcType strin
 		httpDo:  client.Do,
 		log:     slog.Default(),
 		metrics: metrics,
-		rpcType: rpcType,
 	}
 }
 
@@ -41,7 +39,7 @@ const unknownErrReason = "unknown"
 
 func (c FallbackClient) Get(ctx context.Context, path string) (*http.Response, error) {
 	doGet := func(host url.URL) (*http.Response, error) {
-		log := c.log.With("host", host.Hostname(), "path", path, "rpc", c.rpcType)
+		log := c.log.With("host", host.Hostname(), "path", path)
 		host.Path = path
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, host.String(), nil)
 		if err != nil {
@@ -58,7 +56,7 @@ func (c FallbackClient) Get(ctx context.Context, path string) (*http.Response, e
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			_ = resp.Body.Close()
 			log.Error("Response returned bad status code", "status", resp.StatusCode)
-			c.metrics.IncClientError(c.rpcType, host, strconv.Itoa(resp.StatusCode))
+			c.metrics.IncAPIError(host, strconv.Itoa(resp.StatusCode))
 			return nil, fmt.Errorf("%s: bad status code %d", req.URL, resp.StatusCode)
 		}
 		return resp, nil
@@ -85,5 +83,5 @@ func (c FallbackClient) recordErrMetric(host url.URL, err error) {
 		// Do not record when the process is shutting down.
 		return
 	}
-	c.metrics.IncClientError(c.rpcType, host, reason)
+	c.metrics.IncAPIError(host, reason)
 }

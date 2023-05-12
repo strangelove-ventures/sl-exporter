@@ -60,7 +60,7 @@ func Execute() {
 	registry.MustRegister(metrics.BuildStatic(cfg.Static.Gauges)...)
 
 	// Register reference rpc metrics
-	refMets := metrics.NewReferenceRPC()
+	refMets := metrics.NewHTTPRequest()
 	registry.MustRegister(refMets.Metrics()...)
 
 	// Register cosmos chain metrics
@@ -125,7 +125,7 @@ func logFatal(msg string, err error) {
 	os.Exit(1)
 }
 
-func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceRPC, cfg Config) (jobs []metrics.Job) {
+func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) (jobs []metrics.Job) {
 	// TODO(nix): Need different rest clients per chain. This hack prevents > 1 chain.
 	var urls []url.URL
 	for _, rest := range cfg.Cosmos[0].Rest {
