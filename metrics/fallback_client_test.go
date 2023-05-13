@@ -17,14 +17,12 @@ import (
 
 type mockClientMetrics struct {
 	IncClientErrCalls int
-	GotRPCType        string
 	GotHost           url.URL
 	GotErrMsg         string
 }
 
-func (m *mockClientMetrics) IncClientError(rpcType string, host url.URL, errMsg string) {
+func (m *mockClientMetrics) IncAPIError(host url.URL, errMsg string) {
 	m.IncClientErrCalls++
-	m.GotRPCType = rpcType
 	m.GotHost = host
 	m.GotErrMsg = errMsg
 }
@@ -41,7 +39,7 @@ func TestFallbackClient_Get(t *testing.T) {
 	ctx := context.WithValue(context.Background(), dummy("test"), dummy("test"))
 
 	t.Run("happy path", func(t *testing.T) {
-		client := NewFallbackClient(&http.Client{}, nil, "test", urls)
+		client := NewFallbackClient(&http.Client{}, nil, urls)
 		client.log = nopLogger
 		require.NotNil(t, client.httpDo)
 
@@ -65,7 +63,7 @@ func TestFallbackClient_Get(t *testing.T) {
 
 	t.Run("fallback on error", func(t *testing.T) {
 		var metrics mockClientMetrics
-		client := NewFallbackClient(nil, &metrics, "test", urls)
+		client := NewFallbackClient(nil, &metrics, urls)
 		client.log = nopLogger
 
 		var callCount int
@@ -91,7 +89,7 @@ func TestFallbackClient_Get(t *testing.T) {
 
 	t.Run("fallback on bad status code", func(t *testing.T) {
 		var metrics mockClientMetrics
-		client := NewFallbackClient(nil, &metrics, "test", urls)
+		client := NewFallbackClient(nil, &metrics, urls)
 		client.log = nopLogger
 
 		var callCount int
@@ -119,7 +117,7 @@ func TestFallbackClient_Get(t *testing.T) {
 	t.Run("all errors", func(t *testing.T) {
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
 		var metrics mockClientMetrics
-		client := NewFallbackClient(nil, &metrics, "test", urls)
+		client := NewFallbackClient(nil, &metrics, urls)
 		client.log = nopLogger
 
 		var callCount int
@@ -154,7 +152,7 @@ func TestFallbackClient_Get(t *testing.T) {
 			{nil, &http.Response{StatusCode: http.StatusNotFound}, "404"},
 		} {
 			var metrics mockClientMetrics
-			client := NewFallbackClient(nil, &metrics, "test", []url.URL{{Host: "error.example.com"}})
+			client := NewFallbackClient(nil, &metrics, []url.URL{{Host: "error.example.com"}})
 			client.log = nopLogger
 
 			client.httpDo = func(req *http.Request) (*http.Response, error) {
@@ -167,7 +165,6 @@ func TestFallbackClient_Get(t *testing.T) {
 			//nolint
 			_, _ = client.Get(ctx, "")
 
-			require.Equal(t, "test", metrics.GotRPCType, tt)
 			require.Equal(t, "error.example.com", metrics.GotHost.Hostname(), tt)
 			require.Equal(t, tt.WantMsg, metrics.GotErrMsg, tt)
 		}
@@ -175,7 +172,7 @@ func TestFallbackClient_Get(t *testing.T) {
 
 	t.Run("context canceled error", func(t *testing.T) {
 		var metrics mockClientMetrics
-		client := NewFallbackClient(nil, &metrics, "test", []url.URL{{Host: "error.example.com"}})
+		client := NewFallbackClient(nil, &metrics, []url.URL{{Host: "error.example.com"}})
 		client.log = nopLogger
 
 		client.httpDo = func(req *http.Request) (*http.Response, error) {
