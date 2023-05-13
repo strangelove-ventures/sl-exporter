@@ -30,3 +30,9 @@ cosmos:
     validators:
       # The consensus address of a validator.
       - consaddress: cosmosvalcons164q2kq3q3psj436t9p7swmdlh39rw73wpy6qx6
+  - chainID: osmosis-1
+    rest:
+      - url: https://osmosis-api.polkachu.com
+      - url: https://lcd.osmosis.zone
+    validators:
+      - consaddress: osmovalcons1zw8an2m6hc96a52v5l2pmzzm0qzj5j4p9mnvva

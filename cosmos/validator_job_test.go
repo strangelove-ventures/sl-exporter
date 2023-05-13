@@ -37,17 +37,19 @@ func (m *mockValMetrics) SetValJailStatus(chain, consaddress string, status Jail
 func TestValidatorJob_Interval(t *testing.T) {
 	t.Parallel()
 
-	chains := []Chain{
-		{Interval: time.Second, Validators: []Validator{{ConsAddress: "1"}, {ConsAddress: "2"}}},
-		{Validators: []Validator{{ConsAddress: "3"}}}, // empty chain
-	}
+	chain := Chain{Interval: time.Second, Validators: []Validator{{ConsAddress: "1"}, {ConsAddress: "2"}}}
 
-	jobs := BuildValidatorJobs(nil, nil, chains)
+	jobs := BuildValidatorJobs(nil, nil, chain)
 
-	require.Len(t, jobs, 3)
+	require.Len(t, jobs, 2)
 	require.Equal(t, time.Second, jobs[0].Interval())
 	require.Equal(t, time.Second, jobs[1].Interval())
-	require.Equal(t, defaultInterval, jobs[2].Interval())
+
+	chain = Chain{Validators: []Validator{{ConsAddress: "1"}}}
+	jobs = BuildValidatorJobs(nil, nil, chain)
+
+	require.Len(t, jobs, 1)
+	require.Equal(t, defaultInterval, jobs[0].Interval())
 }
 
 func TestValidatorJob_String(t *testing.T) {
@@ -64,13 +66,13 @@ func TestValidatorJob_String(t *testing.T) {
 			{ConsAddress: "cosmosvalcons567"},
 		},
 	}
-	jobs := BuildValidatorJobs(nil, nil, []Chain{chain})
+	jobs := BuildValidatorJobs(nil, nil, chain)
 
 	require.Len(t, jobs, 2)
 	require.Equal(t, "Cosmos validator cosmosvalcons123: cosmoshub-4", jobs[0].String())
 }
 
-func TestValdatorJob_Run(t *testing.T) {
+func TestValidatorJob_Run(t *testing.T) {
 	t.Parallel()
 
 	chain := Chain{
@@ -106,7 +108,7 @@ func TestValdatorJob_Run(t *testing.T) {
 
 			var metrics mockValMetrics
 
-			jobs := BuildValidatorJobs(&metrics, &client, []Chain{chain})
+			jobs := BuildValidatorJobs(&metrics, &client, chain)
 
 			require.Len(t, jobs, 1)
 			err := jobs[0].Run(context.Background())
@@ -121,7 +123,7 @@ func TestValdatorJob_Run(t *testing.T) {
 	})
 
 	t.Run("zero state", func(t *testing.T) {
-		jobs := BuildValidatorJobs(nil, nil, nil)
+		jobs := BuildValidatorJobs(nil, nil, Chain{})
 
 		require.Empty(t, jobs)
 	})

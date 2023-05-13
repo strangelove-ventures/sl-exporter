@@ -34,18 +34,16 @@ type ValidatorJob struct {
 	metrics     ValidatorMetrics
 }
 
-func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chains []Chain) []ValidatorJob {
-	var jobs []ValidatorJob
-	for _, chain := range chains {
-		for _, val := range chain.Validators {
-			jobs = append(jobs, ValidatorJob{
-				chainID:     chain.ChainID,
-				client:      client,
-				consaddress: val.ConsAddress,
-				interval:    intervalOrDefault(chain.Interval),
-				metrics:     metrics,
-			})
-		}
+func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []*ValidatorJob {
+	var jobs []*ValidatorJob
+	for _, val := range chain.Validators {
+		jobs = append(jobs, &ValidatorJob{
+			chainID:     chain.ChainID,
+			client:      client,
+			consaddress: val.ConsAddress,
+			interval:    intervalOrDefault(chain.Interval),
+			metrics:     metrics,
+		})
 	}
 	return jobs
 }
@@ -58,7 +56,7 @@ func (job ValidatorJob) Interval() time.Duration { return job.interval }
 
 // Run executes the job gathering a variety of metrics for cosmos validators.
 func (job ValidatorJob) Run(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, defaultRestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	resp, err := job.client.SigningStatus(ctx, job.consaddress)
 	if err != nil {
