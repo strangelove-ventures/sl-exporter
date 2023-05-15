@@ -33,11 +33,12 @@ type ValidatorClient interface {
 	SigningStatus(ctx context.Context, consaddress string) (SigningStatus, error)
 }
 
-// ValidatorJob queries the Cosmos REST (aka LCD) API for data and records metrics specific to a validator.
+// ValidatorTask queries the Cosmos REST (aka LCD) API for data and records metrics specific to a validator.
 // It records:
 // - whether the validator is jailed or tombstoned
 // - the number of blocks signed by the validator
-type ValidatorJob struct {
+// - the number of validator missed blocks
+type ValidatorTask struct {
 	chainID     string
 	client      ValidatorClient
 	consaddress string
@@ -45,10 +46,10 @@ type ValidatorJob struct {
 	metrics     ValidatorMetrics
 }
 
-func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []ValidatorJob {
-	var tasks []ValidatorJob
+func BuildValidatorTasks(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []ValidatorTask {
+	var tasks []ValidatorTask
 	for _, val := range chain.Validators {
-		tasks = append(tasks, ValidatorJob{
+		tasks = append(tasks, ValidatorTask{
 			chainID:     chain.ChainID,
 			client:      client,
 			consaddress: val.ConsAddress,
@@ -59,21 +60,21 @@ func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain 
 	return tasks
 }
 
-func (task ValidatorJob) String() string {
+func (task ValidatorTask) String() string {
 	return fmt.Sprintf("Cosmos validator %s: %s", task.chainID, task.consaddress)
 }
 
-func (task ValidatorJob) Interval() time.Duration { return task.interval }
+func (task ValidatorTask) Interval() time.Duration { return task.interval }
 
 // Run executes the job gathering a variety of metrics for cosmos validators.
-func (task ValidatorJob) Run(ctx context.Context) error {
+func (task ValidatorTask) Run(ctx context.Context) error {
 	return errors.Join(
 		task.processSigningStatus(ctx),
 		task.processSignedBlocks(ctx),
 	)
 }
 
-func (task ValidatorJob) processSignedBlocks(ctx context.Context) error {
+func (task ValidatorTask) processSignedBlocks(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 
@@ -105,7 +106,7 @@ func (task ValidatorJob) processSignedBlocks(ctx context.Context) error {
 	return nil
 }
 
-func (task ValidatorJob) processSigningStatus(ctx context.Context) error {
+func (task ValidatorTask) processSigningStatus(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	resp, err := task.client.SigningStatus(ctx, task.consaddress)

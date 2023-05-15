@@ -67,25 +67,25 @@ func (m *mockValMetrics) SetValMissedBlocks(chain, consaddress string, missed fl
 	m.GotMissedBlocks = missed
 }
 
-func TestValidatorJob_Interval(t *testing.T) {
+func TestValidatorTask_Interval(t *testing.T) {
 	t.Parallel()
 
 	chain := Chain{Interval: time.Second, Validators: []Validator{{ConsAddress: "1"}, {ConsAddress: "2"}}}
 
-	tasks := BuildValidatorJobs(nil, nil, chain)
+	tasks := BuildValidatorTasks(nil, nil, chain)
 
 	require.Len(t, tasks, 2)
 	require.Equal(t, time.Second, tasks[0].Interval())
 	require.Equal(t, time.Second, tasks[1].Interval())
 
 	chain = Chain{Validators: []Validator{{ConsAddress: "1"}}}
-	tasks = BuildValidatorJobs(nil, nil, chain)
+	tasks = BuildValidatorTasks(nil, nil, chain)
 
 	require.Len(t, tasks, 1)
 	require.Equal(t, defaultInterval, tasks[0].Interval())
 }
 
-func TestValidatorJob_String(t *testing.T) {
+func TestValidatorTask_String(t *testing.T) {
 	t.Parallel()
 
 	chain := Chain{
@@ -95,13 +95,13 @@ func TestValidatorJob_String(t *testing.T) {
 			{ConsAddress: "cosmosvalcons567"},
 		},
 	}
-	tasks := BuildValidatorJobs(nil, nil, chain)
+	tasks := BuildValidatorTasks(nil, nil, chain)
 
 	require.Len(t, tasks, 2)
 	require.Equal(t, "Cosmos validator cosmoshub-4: cosmosvalcons123", tasks[0].String())
 }
 
-func TestValidatorJob_Run(t *testing.T) {
+func TestValidatorTask_Run(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -109,7 +109,7 @@ func TestValidatorJob_Run(t *testing.T) {
 	const addr = `cosmosvalcons164q2kq3q3psj436t9p7swmdlh39rw73wpy6qx6`
 
 	t.Run("zero state", func(t *testing.T) {
-		tasks := BuildValidatorJobs(nil, nil, Chain{})
+		tasks := BuildValidatorTasks(nil, nil, Chain{})
 
 		require.Empty(t, tasks)
 	})
@@ -124,7 +124,7 @@ func TestValidatorJob_Run(t *testing.T) {
 
 		client := new(mockValRestClient)
 		var metrics mockValMetrics
-		tasks := BuildValidatorJobs(&metrics, client, chain)
+		tasks := BuildValidatorTasks(&metrics, client, chain)
 		client.StubBlock.Block.LastCommit.Height = "1"
 		client.StubSigningStatus.ValSigningInfo.MissedBlocksCounter = "0"
 
@@ -183,7 +183,7 @@ func TestValidatorJob_Run(t *testing.T) {
 				},
 			}
 
-			tasks := BuildValidatorJobs(&metrics, &client, chain)
+			tasks := BuildValidatorTasks(&metrics, &client, chain)
 
 			require.Len(t, tasks, 1)
 			err := tasks[0].Run(ctx)
@@ -212,7 +212,7 @@ func TestValidatorJob_Run(t *testing.T) {
 				{ConsAddress: addr},
 			},
 		}
-		tasks := BuildValidatorJobs(&metrics, &client, chain)
+		tasks := BuildValidatorTasks(&metrics, &client, chain)
 
 		require.Len(t, tasks, 1)
 
