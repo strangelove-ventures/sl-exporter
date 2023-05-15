@@ -10,7 +10,7 @@ import (
 	"go.uber.org/goleak"
 )
 
-type mockJob struct {
+type mockTask struct {
 	Cancel       context.CancelFunc
 	CancelAt     int64
 	StubInterval time.Duration
@@ -19,15 +19,15 @@ type mockJob struct {
 	RunCount   int64
 }
 
-func (m *mockJob) String() string {
-	return "mock job"
+func (m *mockTask) String() string {
+	return "mock task"
 }
 
-func (m *mockJob) Interval() time.Duration {
+func (m *mockTask) Interval() time.Duration {
 	return m.StubInterval
 }
 
-func (m *mockJob) Run(ctx context.Context) error {
+func (m *mockTask) Run(ctx context.Context) error {
 	if ctx == nil {
 		panic("nil context")
 	}
@@ -49,7 +49,7 @@ func TestWorkerPool(t *testing.T) {
 		var totalCount int64
 		tasks := make([]Task, 4)
 		for i := 0; i < 4; i++ {
-			tasks[i] = &mockJob{
+			tasks[i] = &mockTask{
 				StubInterval: time.Hour,
 				CancelAt:     10,
 				Cancel:       cancel,
@@ -57,7 +57,7 @@ func TestWorkerPool(t *testing.T) {
 			}
 		}
 
-		tasks = append(tasks, &mockJob{
+		tasks = append(tasks, &mockTask{
 			StubInterval: time.Millisecond,
 			CancelAt:     10,
 			Cancel:       cancel,
@@ -70,16 +70,16 @@ func TestWorkerPool(t *testing.T) {
 		pool.Start(ctx)
 
 		for _, task := range tasks[:4] {
-			require.Equal(t, int64(1), task.(*mockJob).RunCount)
+			require.Equal(t, int64(1), task.(*mockTask).RunCount)
 		}
-		require.Greater(t, tasks[4].(*mockJob).RunCount, int64(1))
+		require.Greater(t, tasks[4].(*mockTask).RunCount, int64(1))
 	})
 
 	t.Run("zero duration", func(t *testing.T) {
-		tasks := []Task{&mockJob{}}
+		tasks := []Task{&mockTask{}}
 		_, err := NewWorkerPool(tasks, 1)
 
 		require.Error(t, err)
-		require.EqualError(t, err, "mock job interval must be > 0")
+		require.EqualError(t, err, "mock task interval must be > 0")
 	})
 }

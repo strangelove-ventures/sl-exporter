@@ -54,14 +54,14 @@ func (w *WorkerPool) Start(ctx context.Context) {
 			return nil
 		})
 	}
-	// Two errgroups ensure we do not write to a closed channel. So wait for producers to finish first.
+	// Two errgroups ensure we do not send on a closed channel. So wait for producers to finish first.
 	_ = produceGroup.Wait()
 	close(ch)
 	_ = workerGroup.Wait()
 }
 
 func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, task Task) {
-	submitJob := func() {
+	submitTask := func() {
 		select {
 		case <-ctx.Done():
 			return
@@ -69,10 +69,10 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, task Task) {
 		}
 	}
 
-	// Immediately submit the job
-	submitJob()
+	// Immediately submit the task
+	submitTask()
 
-	// Then submit job at interval
+	// Then submit task at interval
 	tick := time.NewTicker(task.Interval())
 	defer tick.Stop()
 
@@ -81,7 +81,7 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, task Task) {
 		case <-ctx.Done():
 			return
 		case <-tick.C:
-			submitJob()
+			submitTask()
 		}
 	}
 }
@@ -89,7 +89,7 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, task Task) {
 func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Task) {
 	for task := range ch {
 		if err := task.Run(ctx); err != nil {
-			slog.Warn("Task failed", "job", task.String(), "error", err)
+			slog.Warn("Task failed", "task", task.String(), "error", err)
 		}
 	}
 }
