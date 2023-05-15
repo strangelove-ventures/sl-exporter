@@ -65,7 +65,7 @@ func (task RestTask) Run(ctx context.Context) error {
 		return err
 	}
 	if chainID := block.Block.Header.ChainID; chainID != task.chainID {
-		slog.Warn("Mismatched chain id", "expected", task.chainID, "actual", chainID, "job", task.String())
+		slog.Warn("Mismatched chain id", "expected", task.chainID, "actual", chainID, "task", task.String())
 	}
 	height, err := strconv.ParseFloat(block.Block.Header.Height, 64)
 	if err != nil {

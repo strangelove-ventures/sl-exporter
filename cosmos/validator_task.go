@@ -66,7 +66,7 @@ func (task ValidatorTask) String() string {
 
 func (task ValidatorTask) Interval() time.Duration { return task.interval }
 
-// Run executes the job gathering a variety of metrics for cosmos validators.
+// Run executes the task gathering a variety of metrics for cosmos validators.
 func (task ValidatorTask) Run(ctx context.Context) error {
 	return errors.Join(
 		task.processSigningStatus(ctx),
