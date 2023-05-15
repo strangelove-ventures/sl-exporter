@@ -47,7 +47,7 @@ func TestWorkerPool(t *testing.T) {
 		defer cancel()
 
 		var totalCount int64
-		jobs := make([]Job, 4)
+		jobs := make([]Task, 4)
 		for i := 0; i < 4; i++ {
 			jobs[i] = &mockJob{
 				StubInterval: time.Hour,
@@ -76,7 +76,7 @@ func TestWorkerPool(t *testing.T) {
 	})
 
 	t.Run("zero duration", func(t *testing.T) {
-		jobs := []Job{&mockJob{}}
+		jobs := []Task{&mockJob{}}
 		_, err := NewWorkerPool(jobs, 1)
 
 		require.Error(t, err)

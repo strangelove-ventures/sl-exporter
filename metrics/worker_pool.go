@@ -9,20 +9,20 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Job interface {
+type Task interface {
 	fmt.Stringer
 	Interval() time.Duration
 	Run(ctx context.Context) error
 }
 
-// WorkerPool runs jobs at intervals.
+// WorkerPool runs tasks at intervals.
 type WorkerPool struct {
-	jobs    []Job
+	jobs    []Task
 	workers int
 }
 
 // NewWorkerPool creates a new worker pool.
-func NewWorkerPool(jobs []Job, numWorkers int) (*WorkerPool, error) {
+func NewWorkerPool(jobs []Task, numWorkers int) (*WorkerPool, error) {
 	var pool WorkerPool
 	pool.workers = numWorkers
 	pool.jobs = jobs
@@ -36,7 +36,7 @@ func NewWorkerPool(jobs []Job, numWorkers int) (*WorkerPool, error) {
 
 // Start continuously runs jobs at intervals until the context is canceled.
 func (w *WorkerPool) Start(ctx context.Context) {
-	ch := make(chan Job)
+	ch := make(chan Task)
 
 	var produceGroup errgroup.Group
 	for _, job := range w.jobs {
@@ -60,7 +60,7 @@ func (w *WorkerPool) Start(ctx context.Context) {
 	_ = workerGroup.Wait()
 }
 
-func (w *WorkerPool) produce(ctx context.Context, ch chan<- Job, job Job) {
+func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, job Task) {
 	submitJob := func() {
 		select {
 		case <-ctx.Done():
@@ -86,10 +86,10 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Job, job Job) {
 	}
 }
 
-func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Job) {
+func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Task) {
 	for job := range ch {
 		if err := job.Run(ctx); err != nil {
-			slog.Warn("Job failed", "job", job.String(), "error", err)
+			slog.Warn("Task failed", "job", job.String(), "error", err)
 		}
 	}
 }

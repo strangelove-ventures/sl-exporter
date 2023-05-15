@@ -68,7 +68,7 @@ func Execute() {
 	registry.MustRegister(cosmosMets.Metrics()...)
 
 	// Build all jobs
-	var jobs []metrics.Job
+	var jobs []metrics.Task
 	cosmosJobs := buildCosmosJobs(cosmosMets, refMets, cfg)
 	jobs = append(jobs, cosmosJobs...)
 
@@ -125,8 +125,8 @@ func logFatal(msg string, err error) {
 	os.Exit(1)
 }
 
-func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) []metrics.Job {
-	var jobs []metrics.Job
+func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) []metrics.Task {
+	var jobs []metrics.Task
 
 	for _, chain := range cfg.Cosmos {
 		var urls []url.URL
@@ -147,8 +147,8 @@ func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, 
 	return jobs
 }
 
-func toJobs[T metrics.Job](jobs []T) []metrics.Job {
-	result := make([]metrics.Job, len(jobs))
+func toJobs[T metrics.Task](jobs []T) []metrics.Task {
+	result := make([]metrics.Task, len(jobs))
 	for i := range jobs {
 		result[i] = jobs[i]
 	}
