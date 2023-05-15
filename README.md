@@ -2,46 +2,45 @@
 
 Strangelove Prometheus Exporter
 
-Exposes `/metrics` endpoint with Prometheus formatted metrics. Currently, we are only interested in
-metadata metrics like `cosmos_asset_exponent`.
+Exposes `/metrics` endpoint with Prometheus formatted metrics. 
+
+## Motivation
+
+This exporter allows you to monitor blockchains and validators which interest you. Although the current focus is
+cosmos chains, the exporter is designed to be chain agnostic. The primary focus is to expose actionable metrics 
+for SREs. 
+
+It can be run independently and does not need to run alongside an RPC or validator node.
+
+This exporter does not export metrics for entire chains. For that, consider [the cosmos-exporter](https://github.com/solarlabsteam/cosmos-exporter).
 
 ## Usage
+
+Almost all configuration is via the config file. See [example config](./config.example.yaml).
 
 ```shell
 # Build
 go build -o exporter main.go
-# Run
+# See usage
+./exporter -h
+# Example run
 ./exporter --bind=0.0.0.0:9100 --config=config.yaml
 ```
 
-## Metrics
-
-- `cosmos_asset_exponent{chain, denom}`
-
-  Enriches Relayer metrics (e.g. `cosmos_relayer_wallet_balance`) to dynamically create Grafana panels and alerts.
-- 
 ## Local Development
 
-Run this once after you've cloned the repo:
+Quickstart:
 ```shell
 make setup
+go run .
+# In another shell, see /metrics endpoint
+curl localhost:9100/metrics
 ```
 
 To continually live reload changes while developing:
 ```shell
 make watch
 ```
-
-## More use cases
-
-- Chain current block height
-
-  This is a blocker to creating an alert on reference height for fullnodes. Such metrics are normally exposed in JSON
-  endpoints and can not be used in alerting.
-
-- USD value of a cosmos asset to attach it to metrics
-
-  This allows creating financial panels
 
 ---
 
@@ -59,12 +58,9 @@ docker run --rm -p 9100:9100 -v $(pwd)/config.yaml:/config.yaml sl-exporter --bi
 
 ## Release
 
-Simply push any tag to this repository
+Push tag to the remote. 
 
-# Todos
+## Roadmap
 
-- Add testing
-- Enable linting on CI
-- Use https://github.com/spf13/viper to simplify loading config and maybe flags as well
-- Use slog for structured logging: https://pkg.go.dev/golang.org/x/exp/slog
-- Load config once and don't recreate the registry
+- [ ] Financial exchange data to aid with validator economics
+- [ ] Non-cosmos chains such as Ethereum balance monitoring
