@@ -3,7 +3,7 @@ package cosmos
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
@@ -86,19 +86,21 @@ func (task ValidatorTask) processSignedBlocks(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	height, err := strconv.ParseFloat(block.Block.LastCommit.Height, 64)
-	if err != nil {
-		return fmt.Errorf("parse block last commit height: %w", err)
-	}
 
 	for _, sig := range block.Block.LastCommit.Signatures {
-		sigHex, err := hex.DecodeString(sig.ValidatorAddress)
+		sigHex, err := base64.StdEncoding.DecodeString(sig.ValidatorAddress)
 		if err != nil {
 			return err
 		}
 		if bytes.Equal(sigHex, valHex) {
-			task.metrics.SetValSignedBlock(task.chainID, task.consaddress, height)
 			task.metrics.IncValSignedBlocks(task.chainID, task.consaddress)
+
+			height, err := strconv.ParseFloat(block.Block.LastCommit.Height, 64)
+			if err != nil {
+				return fmt.Errorf("parse block last commit height: %w", err)
+			}
+			task.metrics.SetValSignedBlock(task.chainID, task.consaddress, height)
+
 			break
 		}
 	}
