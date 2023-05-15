@@ -25,6 +25,7 @@ type ValidatorMetrics interface {
 	IncValSignedBlocks(chain, consaddress string)
 	SetValJailStatus(chain, consaddress string, status JailStatus)
 	SetValSignedBlock(chain, consaddress string, height float64)
+	SetValMissedBlocks(chain, consaddress string, missed float64)
 }
 
 type ValidatorClient interface {
@@ -86,7 +87,7 @@ func (job ValidatorJob) processSignedBlocks(ctx context.Context) error {
 	}
 	height, err := strconv.ParseFloat(block.Block.LastCommit.Height, 64)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse block last commit height: %w", err)
 	}
 
 	for _, sig := range block.Block.LastCommit.Signatures {
@@ -111,6 +112,8 @@ func (job ValidatorJob) processSigningStatus(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// Capture jail status
 	status := JailStatusActive
 	if time.Since(resp.ValSigningInfo.JailedUntil) < 0 {
 		status = JailStatusJailed
@@ -119,5 +122,12 @@ func (job ValidatorJob) processSigningStatus(ctx context.Context) error {
 		status = JailStatusTombstoned
 	}
 	job.metrics.SetValJailStatus(job.chainID, job.consaddress, status)
+
+	// Capture missed blocks
+	missed, err := strconv.ParseFloat(resp.ValSigningInfo.MissedBlocksCounter, 64)
+	if err != nil {
+		return fmt.Errorf("parse missed blocks counter: %w", err)
+	}
+	job.metrics.SetValMissedBlocks(job.chainID, job.consaddress, missed)
 	return nil
 }
