@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:embed testdata/block.json
-var blockFixture []byte
+//go:embed testdata/latest_block.json
+var latestBlockFixture []byte
 
 type mockHTTPClient struct {
 	GetFn func(ctx context.Context, path string) (*http.Response, error)
@@ -35,18 +35,20 @@ func TestClient_LatestBlock(t *testing.T) {
 		var httpClient mockHTTPClient
 		httpClient.GetFn = func(ctx context.Context, path string) (*http.Response, error) {
 			require.NotNil(t, ctx)
-			require.Equal(t, "/blocks/latest", path)
+			require.Equal(t, "/cosmos/base/tendermint/v1beta1/blocks/latest", path)
 
 			return &http.Response{
 				StatusCode: 200,
-				Body:       io.NopCloser(bytes.NewReader(blockFixture)),
+				Body:       io.NopCloser(bytes.NewReader(latestBlockFixture)),
 			}, nil
 		}
 		client := NewRestClient(httpClient)
 		got, err := client.LatestBlock(ctx)
 
 		require.NoError(t, err)
-		require.Equal(t, "15226219", got.Block.Header.Height)
+		require.Equal(t, "15312655", got.Block.Header.Height)
+		require.Equal(t, "15312654", got.Block.LastCommit.Height)
+		require.Equal(t, "cosmoshub-4", got.Block.Header.ChainID)
 	})
 
 	t.Run("error", func(t *testing.T) {
