@@ -90,3 +90,20 @@ func TestCosmos_SetValSignedBlock(t *testing.T) {
 	const want = `sl_exporter_cosmos_val_latest_signed_block_height{address="cosmosvalcons123",chain_id="cosmoshub-4"} 12345`
 	require.Contains(t, r.Body.String(), want)
 }
+
+func TestCosmos_SetValMissedBlocks(t *testing.T) {
+	t.Parallel()
+
+	metrics := NewCosmos()
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(metrics.Metrics()[4])
+	h := metricsHandler(reg)
+
+	metrics.SetValMissedBlocks("cosmoshub-4", "cosmosvalcons123", 9)
+
+	r := httptest.NewRecorder()
+	h.ServeHTTP(r, stubRequest)
+
+	const want = `sl_exporter_cosmos_val_latest_missed_blocks{address="cosmosvalcons123",chain_id="cosmoshub-4"} 9`
+	require.Contains(t, r.Body.String(), want)
+}

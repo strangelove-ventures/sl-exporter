@@ -11,6 +11,7 @@ type Cosmos struct {
 	valJailGauge        *prometheus.GaugeVec
 	valBlockSignCounter *prometheus.CounterVec
 	valSignedBlock      *prometheus.GaugeVec
+	valMissedBlocks     *prometheus.GaugeVec
 }
 
 func NewCosmos() *Cosmos {
@@ -43,6 +44,13 @@ func NewCosmos() *Cosmos {
 			},
 			[]string{"chain_id", "address"},
 		),
+		valMissedBlocks: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_missed_blocks"),
+				Help: "The latest missed blocks for a cosmos validator as reported by API endpoint cosmos/slashing/v1beta1/signing_infos",
+			},
+			[]string{"chain_id", "address"},
+		),
 	}
 }
 
@@ -67,6 +75,11 @@ func (c *Cosmos) SetValSignedBlock(chain, consaddress string, height float64) {
 	c.valSignedBlock.WithLabelValues(chain, consaddress).Set(height)
 }
 
+// SetValMissedBlocks sets the number of missed blocks for a validator.
+func (c *Cosmos) SetValMissedBlocks(chain, consaddress string, missed float64) {
+	c.valMissedBlocks.WithLabelValues(chain, consaddress).Set(missed)
+}
+
 // Metrics returns all metrics for Cosmos chains to be added to a Prometheus registry.
 func (c *Cosmos) Metrics() []prometheus.Collector {
 	return []prometheus.Collector{
@@ -74,5 +87,6 @@ func (c *Cosmos) Metrics() []prometheus.Collector {
 		c.valJailGauge,
 		c.valBlockSignCounter,
 		c.valSignedBlock,
+		c.valMissedBlocks,
 	}
 }
