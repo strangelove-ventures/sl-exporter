@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -21,8 +22,9 @@ const (
 )
 
 type ValidatorMetrics interface {
-	SetValJailStatus(chain, consaddress string, status JailStatus)
 	IncValSignedBlocks(chain, consaddress string)
+	SetValJailStatus(chain, consaddress string, status JailStatus)
+	SetValSignedBlock(chain, consaddress string, height float64)
 }
 
 type ValidatorClient interface {
@@ -82,6 +84,10 @@ func (job ValidatorJob) processSignedBlocks(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	height, err := strconv.ParseFloat(block.Block.LastCommit.Height, 64)
+	if err != nil {
+		return err
+	}
 
 	for _, sig := range block.Block.LastCommit.Signatures {
 		sigHex, err := hex.DecodeString(sig.ValidatorAddress)
@@ -89,6 +95,7 @@ func (job ValidatorJob) processSignedBlocks(ctx context.Context) error {
 			return err
 		}
 		if bytes.Equal(sigHex, valHex) {
+			job.metrics.SetValSignedBlock(job.chainID, job.consaddress, height)
 			job.metrics.IncValSignedBlocks(job.chainID, job.consaddress)
 			break
 		}

@@ -34,9 +34,10 @@ func (m *mockValRestClient) SigningStatus(ctx context.Context, consaddress strin
 }
 
 type mockValMetrics struct {
-	GotChain      string
-	GotAddr       string
-	GotJailStatus JailStatus
+	GotChain       string
+	GotAddr        string
+	GotJailStatus  JailStatus
+	GotSignedBlock float64
 
 	SignedBlockCount int
 }
@@ -51,6 +52,12 @@ func (m *mockValMetrics) IncValSignedBlocks(chain, consaddress string) {
 	m.SignedBlockCount++
 	m.GotChain = chain
 	m.GotAddr = consaddress
+}
+
+func (m *mockValMetrics) SetValSignedBlock(chain, consaddress string, height float64) {
+	m.GotChain = chain
+	m.GotAddr = consaddress
+	m.GotSignedBlock = height
 }
 
 func TestValidatorJob_Interval(t *testing.T) {
@@ -111,16 +118,19 @@ func TestValidatorJob_Run(t *testing.T) {
 		client := new(mockValRestClient)
 		var metrics mockValMetrics
 		jobs := BuildValidatorJobs(&metrics, client, chain)
+		client.StubBlock.Block.LastCommit.Height = "1"
 
 		require.Len(t, jobs, 1)
 		job := jobs[0]
 		err := job.Run(ctx)
 		require.NoError(t, err)
 
-		require.Equal(t, 0, metrics.SignedBlockCount)
+		require.Zero(t, metrics.SignedBlockCount)
+		require.Zero(t, metrics.GotSignedBlock)
 
 		var block Block
 		require.NoError(t, json.Unmarshal(blockFixture, &block))
+		block.Block.LastCommit.Height = "9001"
 		client.StubBlock = block
 
 		err = job.Run(ctx)
@@ -129,6 +139,8 @@ func TestValidatorJob_Run(t *testing.T) {
 		require.Equal(t, 1, metrics.SignedBlockCount)
 		require.Equal(t, "cosmoshub-4", metrics.GotChain)
 		require.Equal(t, addr, metrics.GotAddr)
+
+		require.Equal(t, float64(9001), metrics.GotSignedBlock)
 	})
 
 	t.Run("happy path - jail status", func(t *testing.T) {
@@ -150,6 +162,7 @@ func TestValidatorJob_Run(t *testing.T) {
 			status.ValSigningInfo.JailedUntil = tt.JailedUntil
 			var client mockValRestClient
 			client.StubSigningStatus = status
+			client.StubBlock.Block.LastCommit.Height = "1"
 
 			var metrics mockValMetrics
 
