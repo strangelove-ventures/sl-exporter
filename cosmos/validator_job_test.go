@@ -34,10 +34,11 @@ func (m *mockValRestClient) SigningStatus(ctx context.Context, consaddress strin
 }
 
 type mockValMetrics struct {
-	GotChain       string
-	GotAddr        string
-	GotJailStatus  JailStatus
-	GotSignedBlock float64
+	GotChain        string
+	GotAddr         string
+	GotJailStatus   JailStatus
+	GotSignedBlock  float64
+	GotMissedBlocks float64
 
 	SignedBlockCount int
 }
@@ -58,6 +59,12 @@ func (m *mockValMetrics) SetValSignedBlock(chain, consaddress string, height flo
 	m.GotChain = chain
 	m.GotAddr = consaddress
 	m.GotSignedBlock = height
+}
+
+func (m *mockValMetrics) SetValMissedBlocks(chain, consaddress string, missed float64) {
+	m.GotChain = chain
+	m.GotAddr = consaddress
+	m.GotMissedBlocks = missed
 }
 
 func TestValidatorJob_Interval(t *testing.T) {
@@ -119,6 +126,7 @@ func TestValidatorJob_Run(t *testing.T) {
 		var metrics mockValMetrics
 		jobs := BuildValidatorJobs(&metrics, client, chain)
 		client.StubBlock.Block.LastCommit.Height = "1"
+		client.StubSigningStatus.ValSigningInfo.MissedBlocksCounter = "0"
 
 		require.Len(t, jobs, 1)
 		job := jobs[0]
@@ -160,6 +168,8 @@ func TestValidatorJob_Run(t *testing.T) {
 			var status SigningStatus
 			status.ValSigningInfo.Tombstoned = tt.Tombstoned
 			status.ValSigningInfo.JailedUntil = tt.JailedUntil
+			status.ValSigningInfo.MissedBlocksCounter = "0"
+
 			var client mockValRestClient
 			client.StubSigningStatus = status
 			client.StubBlock.Block.LastCommit.Height = "1"
@@ -185,5 +195,34 @@ func TestValidatorJob_Run(t *testing.T) {
 			require.Equal(t, addr, metrics.GotAddr)
 			require.Equal(t, tt.WantStatus, metrics.GotJailStatus)
 		}
+	})
+
+	t.Run("happy path - missed blocks", func(t *testing.T) {
+		var status SigningStatus
+		status.ValSigningInfo.MissedBlocksCounter = "79"
+
+		var client mockValRestClient
+		client.StubSigningStatus = status
+		client.StubBlock.Block.LastCommit.Height = "1"
+
+		var metrics mockValMetrics
+		chain := Chain{
+			ChainID: "cosmoshub-4",
+			Validators: []Validator{
+				{ConsAddress: addr},
+			},
+		}
+		jobs := BuildValidatorJobs(&metrics, &client, chain)
+
+		require.Len(t, jobs, 1)
+
+		err := jobs[0].Run(ctx)
+		require.NoError(t, err)
+
+		require.Equal(t, client.SigningStatusAddress, addr)
+		require.Equal(t, "cosmoshub-4", metrics.GotChain)
+		require.Equal(t, addr, metrics.GotAddr)
+
+		require.Equal(t, float64(79), metrics.GotMissedBlocks)
 	})
 }
