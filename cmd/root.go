@@ -139,7 +139,7 @@ func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, 
 		}
 
 		restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, urls))
-		tasks = append(tasks, cosmos.NewRestJob(cosmosMets, restClient, chain))
+		tasks = append(tasks, cosmos.NewRestTask(cosmosMets, restClient, chain))
 		valJobs := cosmos.BuildValidatorJobs(cosmosMets, restClient, chain)
 		tasks = append(tasks, toJobs(valJobs)...)
 	}

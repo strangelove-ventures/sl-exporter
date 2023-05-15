@@ -34,7 +34,7 @@ func NewWorkerPool(tasks []Task, numWorkers int) (*WorkerPool, error) {
 	return &pool, nil
 }
 
-// Start continuously runs jobs at intervals until the context is canceled.
+// Start continuously runs tasks at intervals until the context is canceled.
 func (w *WorkerPool) Start(ctx context.Context) {
 	ch := make(chan Task)
 

@@ -30,25 +30,25 @@ func (m *mockRestClient) LatestBlock(ctx context.Context) (Block, error) {
 	return m.StubBlock, nil
 }
 
-func TestRestJob_Interval(t *testing.T) {
+func TestRestTask_Interval(t *testing.T) {
 	t.Parallel()
 
-	task := NewRestJob(nil, nil, Chain{Interval: time.Second})
+	task := NewRestTask(nil, nil, Chain{Interval: time.Second})
 	require.Equal(t, time.Second, task.Interval())
 
-	task = NewRestJob(nil, nil, Chain{})
+	task = NewRestTask(nil, nil, Chain{})
 	require.Equal(t, defaultInterval, task.Interval())
 }
 
-func TestRestJob_String(t *testing.T) {
+func TestRestTask_String(t *testing.T) {
 	t.Parallel()
 
-	task := NewRestJob(nil, nil, Chain{ChainID: "cosmoshub-4"})
+	task := NewRestTask(nil, nil, Chain{ChainID: "cosmoshub-4"})
 
 	require.Equal(t, "Cosmos REST cosmoshub-4", task.String())
 }
 
-func TestRestJob_Run(t *testing.T) {
+func TestRestTask_Run(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -67,7 +67,7 @@ func TestRestJob_Run(t *testing.T) {
 		}
 
 		var metrics mockCosmosMetrics
-		task := NewRestJob(&metrics, &client, chain)
+		task := NewRestTask(&metrics, &client, chain)
 
 		err := task.Run(ctx)
 		require.NoError(t, err)

@@ -30,16 +30,16 @@ type Client interface {
 	LatestBlock(ctx context.Context) (Block, error)
 }
 
-// RestJob queries the Cosmos REST (aka LCD) API for data and records various metrics.
-type RestJob struct {
+// RestTask queries the Cosmos REST (aka LCD) API for data and records various metrics.
+type RestTask struct {
 	chainID  string
 	client   Client
 	interval time.Duration
 	metrics  Metrics
 }
 
-func NewRestJob(metrics Metrics, client Client, chain Chain) RestJob {
-	return RestJob{
+func NewRestTask(metrics Metrics, client Client, chain Chain) RestTask {
+	return RestTask{
 		chainID:  chain.ChainID,
 		client:   client,
 		interval: intervalOrDefault(chain.Interval),
@@ -47,17 +47,17 @@ func NewRestJob(metrics Metrics, client Client, chain Chain) RestJob {
 	}
 }
 
-func (task RestJob) String() string {
+func (task RestTask) String() string {
 	return fmt.Sprintf("Cosmos REST %s", task.chainID)
 }
 
 // Interval is how often to poll the Endpoint server for data. Defaults to 5s.
-func (task RestJob) Interval() time.Duration {
+func (task RestTask) Interval() time.Duration {
 	return intervalOrDefault(task.interval)
 }
 
 // Run queries the Endpoint server for data and records various metrics.
-func (task RestJob) Run(ctx context.Context) error {
+func (task RestTask) Run(ctx context.Context) error {
 	cctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	block, err := task.client.LatestBlock(cctx)
