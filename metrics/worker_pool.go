@@ -9,40 +9,40 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Job interface {
+type Task interface {
 	fmt.Stringer
 	Interval() time.Duration
 	Run(ctx context.Context) error
 }
 
-// WorkerPool runs jobs at intervals.
+// WorkerPool runs tasks at intervals.
 type WorkerPool struct {
-	jobs    []Job
+	tasks   []Task
 	workers int
 }
 
 // NewWorkerPool creates a new worker pool.
-func NewWorkerPool(jobs []Job, numWorkers int) (*WorkerPool, error) {
+func NewWorkerPool(tasks []Task, numWorkers int) (*WorkerPool, error) {
 	var pool WorkerPool
 	pool.workers = numWorkers
-	pool.jobs = jobs
-	for _, job := range jobs {
-		if job.Interval() <= 0 {
-			return nil, fmt.Errorf("%s interval must be > 0", job)
+	pool.tasks = tasks
+	for _, task := range tasks {
+		if task.Interval() <= 0 {
+			return nil, fmt.Errorf("%s interval must be > 0", task)
 		}
 	}
 	return &pool, nil
 }
 
-// Start continuously runs jobs at intervals until the context is canceled.
+// Start continuously runs tasks at intervals until the context is canceled.
 func (w *WorkerPool) Start(ctx context.Context) {
-	ch := make(chan Job)
+	ch := make(chan Task)
 
 	var produceGroup errgroup.Group
-	for _, job := range w.jobs {
-		job := job
+	for _, task := range w.tasks {
+		task := task
 		produceGroup.Go(func() error {
-			w.produce(ctx, ch, job)
+			w.produce(ctx, ch, task)
 			return nil
 		})
 	}
@@ -54,26 +54,26 @@ func (w *WorkerPool) Start(ctx context.Context) {
 			return nil
 		})
 	}
-	// Two errgroups ensure we do not write to a closed channel. So wait for producers to finish first.
+	// Two errgroups ensure we do not send on a closed channel. So wait for producers to finish first.
 	_ = produceGroup.Wait()
 	close(ch)
 	_ = workerGroup.Wait()
 }
 
-func (w *WorkerPool) produce(ctx context.Context, ch chan<- Job, job Job) {
-	submitJob := func() {
+func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, task Task) {
+	submitTask := func() {
 		select {
 		case <-ctx.Done():
 			return
-		case ch <- job:
+		case ch <- task:
 		}
 	}
 
-	// Immediately submit the job
-	submitJob()
+	// Immediately submit the task
+	submitTask()
 
-	// Then submit job at interval
-	tick := time.NewTicker(job.Interval())
+	// Then submit task at interval
+	tick := time.NewTicker(task.Interval())
 	defer tick.Stop()
 
 	for {
@@ -81,15 +81,15 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Job, job Job) {
 		case <-ctx.Done():
 			return
 		case <-tick.C:
-			submitJob()
+			submitTask()
 		}
 	}
 }
 
-func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Job) {
-	for job := range ch {
-		if err := job.Run(ctx); err != nil {
-			slog.Warn("Job failed", "job", job.String(), "error", err)
+func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Task) {
+	for task := range ch {
+		if err := task.Run(ctx); err != nil {
+			slog.Warn("Task failed", "task", task.String(), "error", err)
 		}
 	}
 }

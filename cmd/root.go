@@ -67,18 +67,18 @@ func Execute() {
 	cosmosMets := metrics.NewCosmos()
 	registry.MustRegister(cosmosMets.Metrics()...)
 
-	// Build all jobs
-	var jobs []metrics.Job
-	cosmosJobs := buildCosmosJobs(cosmosMets, refMets, cfg)
-	jobs = append(jobs, cosmosJobs...)
+	// Build all tasks
+	var tasks []metrics.Task
+	cosmosTasks := buildCosmosTasks(cosmosMets, refMets, cfg)
+	tasks = append(tasks, cosmosTasks...)
 
 	// Configure error group with signal handling.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 	eg, ctx := errgroup.WithContext(ctx)
 
-	// Add all jobs to worker pool
-	pool, err := metrics.NewWorkerPool(jobs, cfg.NumWorkers)
+	// Add all tasks to worker pool
+	pool, err := metrics.NewWorkerPool(tasks, cfg.NumWorkers)
 	if err != nil {
 		logFatal("Failed to create worker pool", err)
 	}
@@ -125,8 +125,8 @@ func logFatal(msg string, err error) {
 	os.Exit(1)
 }
 
-func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) []metrics.Job {
-	var jobs []metrics.Job
+func buildCosmosTasks(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) []metrics.Task {
+	var tasks []metrics.Task
 
 	for _, chain := range cfg.Cosmos {
 		var urls []url.URL
@@ -139,18 +139,18 @@ func buildCosmosJobs(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, 
 		}
 
 		restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, urls))
-		jobs = append(jobs, cosmos.NewRestJob(cosmosMets, restClient, chain))
-		valJobs := cosmos.BuildValidatorJobs(cosmosMets, restClient, chain)
-		jobs = append(jobs, toJobs(valJobs)...)
+		tasks = append(tasks, cosmos.NewRestTask(cosmosMets, restClient, chain))
+		valTasks := cosmos.BuildValidatorTasks(cosmosMets, restClient, chain)
+		tasks = append(tasks, toTasks(valTasks)...)
 	}
 
-	return jobs
+	return tasks
 }
 
-func toJobs[T metrics.Job](jobs []T) []metrics.Job {
-	result := make([]metrics.Job, len(jobs))
-	for i := range jobs {
-		result[i] = jobs[i]
+func toTasks[T metrics.Task](tasks []T) []metrics.Task {
+	result := make([]metrics.Task, len(tasks))
+	for i := range tasks {
+		result[i] = tasks[i]
 	}
 	return result
 }
