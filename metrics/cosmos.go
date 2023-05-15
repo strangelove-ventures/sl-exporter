@@ -10,6 +10,7 @@ type Cosmos struct {
 	heightGauge         *prometheus.GaugeVec
 	valJailGauge        *prometheus.GaugeVec
 	valBlockSignCounter *prometheus.CounterVec
+	valSignedBlock      *prometheus.GaugeVec
 }
 
 func NewCosmos() *Cosmos {
@@ -35,6 +36,13 @@ func NewCosmos() *Cosmos {
 			},
 			[]string{"chain_id", "address"},
 		),
+		valSignedBlock: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_signed_block_height"),
+				Help: "The latest observed block signed by a cosmos validator.",
+			},
+			[]string{"chain_id", "address"},
+		),
 	}
 }
 
@@ -54,11 +62,17 @@ func (c *Cosmos) IncValSignedBlocks(chain, consaddress string) {
 	c.valBlockSignCounter.WithLabelValues(chain, consaddress).Inc()
 }
 
+// SetValSignedBlock sets latest signed block height for a validator.
+func (c *Cosmos) SetValSignedBlock(chain, consaddress string, height float64) {
+	c.valSignedBlock.WithLabelValues(chain, consaddress).Set(height)
+}
+
 // Metrics returns all metrics for Cosmos chains to be added to a Prometheus registry.
 func (c *Cosmos) Metrics() []prometheus.Collector {
 	return []prometheus.Collector{
 		c.heightGauge,
 		c.valJailGauge,
 		c.valBlockSignCounter,
+		c.valSignedBlock,
 	}
 }
