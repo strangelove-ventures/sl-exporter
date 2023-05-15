@@ -7,8 +7,9 @@ import (
 
 // Cosmos records metrics for Cosmos chains
 type Cosmos struct {
-	heightGauge  *prometheus.GaugeVec
-	valJailGauge *prometheus.GaugeVec
+	heightGauge         *prometheus.GaugeVec
+	valJailGauge        *prometheus.GaugeVec
+	valBlockSignCounter *prometheus.CounterVec
 }
 
 func NewCosmos() *Cosmos {
@@ -18,15 +19,20 @@ func NewCosmos() *Cosmos {
 				Name: prometheus.BuildFQName(namespace, cosmosSubsystem, "latest_block_height"),
 				Help: "Latest block height of a cosmos node.",
 			},
-			// labels
 			[]string{"chain_id"},
 		),
 		valJailGauge: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_jailed_status"),
-				Help: "0 if the validator is not jailed. 1 if the validator is jailed. 2 if the validator is tombstoned.",
+				Help: "0 if the cosmos validator is not jailed. 1 if the validator is jailed. 2 if the validator is tombstoned.",
 			},
-			// labels
+			[]string{"chain_id", "address"},
+		),
+		valBlockSignCounter: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "signed_blocks_total"),
+				Help: "Count of observed blocks signed by a cosmos validator.",
+			},
 			[]string{"chain_id", "address"},
 		),
 	}
@@ -43,10 +49,16 @@ func (c *Cosmos) SetValJailStatus(chain, consaddress string, status cosmos.JailS
 	c.valJailGauge.WithLabelValues(chain, consaddress).Set(float64(status))
 }
 
+// IncValSignedBlocks increments the number of blocks signed by validator at consaddress.
+func (c *Cosmos) IncValSignedBlocks(chain, consaddress string) {
+	c.valBlockSignCounter.WithLabelValues(chain, consaddress).Inc()
+}
+
 // Metrics returns all metrics for Cosmos chains to be added to a Prometheus registry.
 func (c *Cosmos) Metrics() []prometheus.Collector {
 	return []prometheus.Collector{
 		c.heightGauge,
 		c.valJailGauge,
+		c.valBlockSignCounter,
 	}
 }

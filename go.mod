@@ -3,11 +3,12 @@ module github.com/strangelove-ventures/sl-exporter
 go 1.20
 
 require (
+	github.com/cosmos/cosmos-sdk v0.47.2
 	github.com/cosmtrek/air v1.43.0
 	github.com/prometheus/client_golang v1.15.1
 	github.com/prometheus/common v0.42.0
 	github.com/spf13/viper v1.15.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	go.uber.org/goleak v1.2.1
 	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
 	golang.org/x/sync v0.2.0
@@ -19,6 +20,7 @@ require (
 	github.com/bep/golibsass v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cli/safeexec v1.0.1 // indirect
+	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
