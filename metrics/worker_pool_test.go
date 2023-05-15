@@ -47,9 +47,9 @@ func TestWorkerPool(t *testing.T) {
 		defer cancel()
 
 		var totalCount int64
-		jobs := make([]Task, 4)
+		tasks := make([]Task, 4)
 		for i := 0; i < 4; i++ {
-			jobs[i] = &mockJob{
+			tasks[i] = &mockJob{
 				StubInterval: time.Hour,
 				CancelAt:     10,
 				Cancel:       cancel,
@@ -57,27 +57,27 @@ func TestWorkerPool(t *testing.T) {
 			}
 		}
 
-		jobs = append(jobs, &mockJob{
+		tasks = append(tasks, &mockJob{
 			StubInterval: time.Millisecond,
 			CancelAt:     10,
 			Cancel:       cancel,
 			TotalCount:   &totalCount,
 		})
 
-		pool, err := NewWorkerPool(jobs, 5)
+		pool, err := NewWorkerPool(tasks, 5)
 		require.NoError(t, err)
 
 		pool.Start(ctx)
 
-		for _, job := range jobs[:4] {
-			require.Equal(t, int64(1), job.(*mockJob).RunCount)
+		for _, task := range tasks[:4] {
+			require.Equal(t, int64(1), task.(*mockJob).RunCount)
 		}
-		require.Greater(t, jobs[4].(*mockJob).RunCount, int64(1))
+		require.Greater(t, tasks[4].(*mockJob).RunCount, int64(1))
 	})
 
 	t.Run("zero duration", func(t *testing.T) {
-		jobs := []Task{&mockJob{}}
-		_, err := NewWorkerPool(jobs, 1)
+		tasks := []Task{&mockJob{}}
+		_, err := NewWorkerPool(tasks, 1)
 
 		require.Error(t, err)
 		require.EqualError(t, err, "mock job interval must be > 0")

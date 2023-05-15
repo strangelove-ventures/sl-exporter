@@ -46,9 +46,9 @@ type ValidatorJob struct {
 }
 
 func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []ValidatorJob {
-	var jobs []ValidatorJob
+	var tasks []ValidatorJob
 	for _, val := range chain.Validators {
-		jobs = append(jobs, ValidatorJob{
+		tasks = append(tasks, ValidatorJob{
 			chainID:     chain.ChainID,
 			client:      client,
 			consaddress: val.ConsAddress,
@@ -56,32 +56,32 @@ func BuildValidatorJobs(metrics ValidatorMetrics, client ValidatorClient, chain 
 			metrics:     metrics,
 		})
 	}
-	return jobs
+	return tasks
 }
 
-func (job ValidatorJob) String() string {
-	return fmt.Sprintf("Cosmos validator %s: %s", job.chainID, job.consaddress)
+func (task ValidatorJob) String() string {
+	return fmt.Sprintf("Cosmos validator %s: %s", task.chainID, task.consaddress)
 }
 
-func (job ValidatorJob) Interval() time.Duration { return job.interval }
+func (task ValidatorJob) Interval() time.Duration { return task.interval }
 
 // Run executes the job gathering a variety of metrics for cosmos validators.
-func (job ValidatorJob) Run(ctx context.Context) error {
+func (task ValidatorJob) Run(ctx context.Context) error {
 	return errors.Join(
-		job.processSigningStatus(ctx),
-		job.processSignedBlocks(ctx),
+		task.processSigningStatus(ctx),
+		task.processSignedBlocks(ctx),
 	)
 }
 
-func (job ValidatorJob) processSignedBlocks(ctx context.Context) error {
+func (task ValidatorJob) processSignedBlocks(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 
-	block, err := job.client.LatestBlock(ctx)
+	block, err := task.client.LatestBlock(ctx)
 	if err != nil {
 		return err
 	}
-	_, valHex, err := bech32.DecodeAndConvert(job.consaddress)
+	_, valHex, err := bech32.DecodeAndConvert(task.consaddress)
 	if err != nil {
 		return err
 	}
@@ -96,8 +96,8 @@ func (job ValidatorJob) processSignedBlocks(ctx context.Context) error {
 			return err
 		}
 		if bytes.Equal(sigHex, valHex) {
-			job.metrics.SetValSignedBlock(job.chainID, job.consaddress, height)
-			job.metrics.IncValSignedBlocks(job.chainID, job.consaddress)
+			task.metrics.SetValSignedBlock(task.chainID, task.consaddress, height)
+			task.metrics.IncValSignedBlocks(task.chainID, task.consaddress)
 			break
 		}
 	}
@@ -105,10 +105,10 @@ func (job ValidatorJob) processSignedBlocks(ctx context.Context) error {
 	return nil
 }
 
-func (job ValidatorJob) processSigningStatus(ctx context.Context) error {
+func (task ValidatorJob) processSigningStatus(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
-	resp, err := job.client.SigningStatus(ctx, job.consaddress)
+	resp, err := task.client.SigningStatus(ctx, task.consaddress)
 	if err != nil {
 		return err
 	}
@@ -121,13 +121,13 @@ func (job ValidatorJob) processSigningStatus(ctx context.Context) error {
 	if resp.ValSigningInfo.Tombstoned {
 		status = JailStatusTombstoned
 	}
-	job.metrics.SetValJailStatus(job.chainID, job.consaddress, status)
+	task.metrics.SetValJailStatus(task.chainID, task.consaddress, status)
 
 	// Capture missed blocks
 	missed, err := strconv.ParseFloat(resp.ValSigningInfo.MissedBlocksCounter, 64)
 	if err != nil {
 		return fmt.Errorf("parse missed blocks counter: %w", err)
 	}
-	job.metrics.SetValMissedBlocks(job.chainID, job.consaddress, missed)
+	task.metrics.SetValMissedBlocks(task.chainID, task.consaddress, missed)
 	return nil
 }

@@ -33,19 +33,19 @@ func (m *mockRestClient) LatestBlock(ctx context.Context) (Block, error) {
 func TestRestJob_Interval(t *testing.T) {
 	t.Parallel()
 
-	job := NewRestJob(nil, nil, Chain{Interval: time.Second})
-	require.Equal(t, time.Second, job.Interval())
+	task := NewRestJob(nil, nil, Chain{Interval: time.Second})
+	require.Equal(t, time.Second, task.Interval())
 
-	job = NewRestJob(nil, nil, Chain{})
-	require.Equal(t, defaultInterval, job.Interval())
+	task = NewRestJob(nil, nil, Chain{})
+	require.Equal(t, defaultInterval, task.Interval())
 }
 
 func TestRestJob_String(t *testing.T) {
 	t.Parallel()
 
-	job := NewRestJob(nil, nil, Chain{ChainID: "cosmoshub-4"})
+	task := NewRestJob(nil, nil, Chain{ChainID: "cosmoshub-4"})
 
-	require.Equal(t, "Cosmos REST cosmoshub-4", job.String())
+	require.Equal(t, "Cosmos REST cosmoshub-4", task.String())
 }
 
 func TestRestJob_Run(t *testing.T) {
@@ -67,9 +67,9 @@ func TestRestJob_Run(t *testing.T) {
 		}
 
 		var metrics mockCosmosMetrics
-		job := NewRestJob(&metrics, &client, chain)
+		task := NewRestJob(&metrics, &client, chain)
 
-		err := job.Run(ctx)
+		err := task.Run(ctx)
 		require.NoError(t, err)
 
 		require.Equal(t, float64(1234567890), metrics.NodeHeight)

@@ -17,18 +17,18 @@ type Task interface {
 
 // WorkerPool runs tasks at intervals.
 type WorkerPool struct {
-	jobs    []Task
+	tasks   []Task
 	workers int
 }
 
 // NewWorkerPool creates a new worker pool.
-func NewWorkerPool(jobs []Task, numWorkers int) (*WorkerPool, error) {
+func NewWorkerPool(tasks []Task, numWorkers int) (*WorkerPool, error) {
 	var pool WorkerPool
 	pool.workers = numWorkers
-	pool.jobs = jobs
-	for _, job := range jobs {
-		if job.Interval() <= 0 {
-			return nil, fmt.Errorf("%s interval must be > 0", job)
+	pool.tasks = tasks
+	for _, task := range tasks {
+		if task.Interval() <= 0 {
+			return nil, fmt.Errorf("%s interval must be > 0", task)
 		}
 	}
 	return &pool, nil
@@ -39,10 +39,10 @@ func (w *WorkerPool) Start(ctx context.Context) {
 	ch := make(chan Task)
 
 	var produceGroup errgroup.Group
-	for _, job := range w.jobs {
-		job := job
+	for _, task := range w.tasks {
+		task := task
 		produceGroup.Go(func() error {
-			w.produce(ctx, ch, job)
+			w.produce(ctx, ch, task)
 			return nil
 		})
 	}
@@ -60,12 +60,12 @@ func (w *WorkerPool) Start(ctx context.Context) {
 	_ = workerGroup.Wait()
 }
 
-func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, job Task) {
+func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, task Task) {
 	submitJob := func() {
 		select {
 		case <-ctx.Done():
 			return
-		case ch <- job:
+		case ch <- task:
 		}
 	}
 
@@ -73,7 +73,7 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, job Task) {
 	submitJob()
 
 	// Then submit job at interval
-	tick := time.NewTicker(job.Interval())
+	tick := time.NewTicker(task.Interval())
 	defer tick.Stop()
 
 	for {
@@ -87,9 +87,9 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, job Task) {
 }
 
 func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Task) {
-	for job := range ch {
-		if err := job.Run(ctx); err != nil {
-			slog.Warn("Task failed", "job", job.String(), "error", err)
+	for task := range ch {
+		if err := task.Run(ctx); err != nil {
+			slog.Warn("Task failed", "job", task.String(), "error", err)
 		}
 	}
 }
