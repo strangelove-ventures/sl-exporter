@@ -137,7 +137,7 @@ func TestValidatorTask_Run(t *testing.T) {
 		require.Zero(t, metrics.GotSignedBlock)
 
 		var block Block
-		require.NoError(t, json.Unmarshal(blockFixture, &block))
+		require.NoError(t, json.Unmarshal(latestBlockFixture, &block))
 		block.Block.LastCommit.Height = "9001"
 		client.StubBlock = block
 

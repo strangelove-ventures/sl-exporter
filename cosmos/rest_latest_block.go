@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// Block represents a block on a Cosmos blockchain.
 type Block struct {
 	BlockID struct {
 		Hash  string `json:"hash"`
@@ -56,7 +55,7 @@ type Block struct {
 				} `json:"parts"`
 			} `json:"block_id"`
 			Signatures []struct {
-				BlockIDFlag      int       `json:"block_id_flag"`
+				BlockIDFlag      string    `json:"block_id_flag"`
 				ValidatorAddress string    `json:"validator_address"`
 				Timestamp        time.Time `json:"timestamp"`
 				Signature        string    `json:"signature"`
@@ -68,6 +67,6 @@ type Block struct {
 // LatestBlock queries the latest block from the Cosmos REST API given the baseURL.
 func (c RestClient) LatestBlock(ctx context.Context) (Block, error) {
 	var latestBlock Block
-	err := c.get(ctx, "/blocks/latest", &latestBlock)
+	err := c.get(ctx, "/cosmos/base/tendermint/v1beta1/blocks/latest", &latestBlock)
 	return latestBlock, err
 }
