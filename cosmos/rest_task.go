@@ -39,7 +39,7 @@ type RestTask struct {
 }
 
 func (task RestTask) Group() string { return task.chainID }
-func (task RestTask) ID() string    { return "block-height" }
+func (task RestTask) ID() string    { return "latest-block-height" }
 
 func NewRestTask(metrics Metrics, client Client, chain Chain) RestTask {
 	return RestTask{
