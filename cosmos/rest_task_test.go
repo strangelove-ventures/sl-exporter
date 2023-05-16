@@ -40,14 +40,6 @@ func TestRestTask_Interval(t *testing.T) {
 	require.Equal(t, defaultInterval, task.Interval())
 }
 
-func TestRestTask_String(t *testing.T) {
-	t.Parallel()
-
-	task := NewRestTask(nil, nil, Chain{ChainID: "cosmoshub-4"})
-
-	require.Equal(t, "Cosmos REST cosmoshub-4", task.String())
-}
-
 func TestRestTask_Run(t *testing.T) {
 	t.Parallel()
 

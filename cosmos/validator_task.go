@@ -46,6 +46,9 @@ type ValidatorTask struct {
 	metrics     ValidatorMetrics
 }
 
+func (task ValidatorTask) Group() string { return task.chainID }
+func (task ValidatorTask) ID() string    { return task.consaddress }
+
 func BuildValidatorTasks(metrics ValidatorMetrics, client ValidatorClient, chain Chain) []ValidatorTask {
 	var tasks []ValidatorTask
 	for _, val := range chain.Validators {
@@ -58,10 +61,6 @@ func BuildValidatorTasks(metrics ValidatorMetrics, client ValidatorClient, chain
 		})
 	}
 	return tasks
-}
-
-func (task ValidatorTask) String() string {
-	return fmt.Sprintf("Cosmos validator %s: %s", task.chainID, task.consaddress)
 }
 
 func (task ValidatorTask) Interval() time.Duration { return task.interval }

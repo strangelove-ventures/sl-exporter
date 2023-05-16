@@ -7,5 +7,4 @@ const (
 	staticSubsystem    = "static"
 	cosmosSubsystem    = "cosmos"
 	cosmosValSubsystem = cosmosSubsystem + "_val"
-	refAPISubsystem    = "reference_api"
 )

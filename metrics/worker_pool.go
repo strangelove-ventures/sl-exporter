@@ -10,28 +10,40 @@ import (
 )
 
 type Task interface {
-	fmt.Stringer
+	// Group returns the group this task belongs to.
+	Group() string
+	// ID is a unique identifier for this task.
+	ID() string
+	// Interval is how often this task runs.
 	Interval() time.Duration
 	Run(ctx context.Context) error
+}
+
+type TaskErrorMetrics interface {
+	IncFailedTask(group string)
 }
 
 // WorkerPool runs tasks at intervals.
 type WorkerPool struct {
 	tasks   []Task
+	metrics TaskErrorMetrics
 	workers int
+	log     *slog.Logger
 }
 
 // NewWorkerPool creates a new worker pool.
-func NewWorkerPool(tasks []Task, numWorkers int) (*WorkerPool, error) {
-	var pool WorkerPool
-	pool.workers = numWorkers
-	pool.tasks = tasks
+func NewWorkerPool(tasks []Task, numWorkers int, metrics TaskErrorMetrics) (*WorkerPool, error) {
 	for _, task := range tasks {
 		if task.Interval() <= 0 {
-			return nil, fmt.Errorf("%s interval must be > 0", task)
+			return nil, fmt.Errorf("%s:%s interval must be > 0", task.Group(), task.ID())
 		}
 	}
-	return &pool, nil
+	return &WorkerPool{
+		tasks:   tasks,
+		metrics: metrics,
+		workers: numWorkers,
+		log:     slog.Default(),
+	}, nil
 }
 
 // Start continuously runs tasks at intervals until the context is canceled.
@@ -89,7 +101,8 @@ func (w *WorkerPool) produce(ctx context.Context, ch chan<- Task, task Task) {
 func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Task) {
 	for task := range ch {
 		if err := task.Run(ctx); err != nil {
-			slog.Warn("Task failed", "task", task.String(), "error", err)
+			w.metrics.IncFailedTask(task.Group())
+			w.log.Error("Task failed", "group", task.Group(), "id", task.ID(), "error", err)
 		}
 	}
 }

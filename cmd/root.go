@@ -59,9 +59,9 @@ func Execute() {
 	// Register static metrics
 	registry.MustRegister(metrics.BuildStatic(cfg.Static.Gauges)...)
 
-	// Register reference rpc metrics
-	refMets := metrics.NewHTTPRequest()
-	registry.MustRegister(refMets.Metrics()...)
+	// Register sl-exporter internal metrics
+	internalMets := metrics.NewInternal()
+	registry.MustRegister(internalMets.Metrics()...)
 
 	// Register cosmos chain metrics
 	cosmosMets := metrics.NewCosmos()
@@ -69,7 +69,7 @@ func Execute() {
 
 	// Build all tasks
 	var tasks []metrics.Task
-	cosmosTasks := buildCosmosTasks(cosmosMets, refMets, cfg)
+	cosmosTasks := buildCosmosTasks(cosmosMets, internalMets, cfg)
 	tasks = append(tasks, cosmosTasks...)
 
 	// Configure error group with signal handling.
@@ -78,7 +78,7 @@ func Execute() {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// Add all tasks to worker pool
-	pool, err := metrics.NewWorkerPool(tasks, cfg.NumWorkers)
+	pool, err := metrics.NewWorkerPool(tasks, cfg.NumWorkers, internalMets)
 	if err != nil {
 		logFatal("Failed to create worker pool", err)
 	}
@@ -125,7 +125,7 @@ func logFatal(msg string, err error) {
 	os.Exit(1)
 }
 
-func buildCosmosTasks(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI, cfg Config) []metrics.Task {
+func buildCosmosTasks(cosmosMets *metrics.Cosmos, internalMets *metrics.Internal, cfg Config) []metrics.Task {
 	var tasks []metrics.Task
 
 	for _, chain := range cfg.Cosmos {
@@ -138,7 +138,7 @@ func buildCosmosTasks(cosmosMets *metrics.Cosmos, refMets *metrics.ReferenceAPI,
 			urls = append(urls, *u)
 		}
 
-		restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, refMets, urls))
+		restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, internalMets, urls))
 		tasks = append(tasks, cosmos.NewRestTask(cosmosMets, restClient, chain))
 		valTasks := cosmos.BuildValidatorTasks(cosmosMets, restClient, chain)
 		tasks = append(tasks, toTasks(valTasks)...)

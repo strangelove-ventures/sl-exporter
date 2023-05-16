@@ -43,19 +43,19 @@ func (c FallbackClient) Get(ctx context.Context, path string) (*http.Response, e
 		host.Path = path
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, host.String(), nil)
 		if err != nil {
-			log.Error("Failed to create request", "error", err)
+			log.Debug("Failed to create request", "error", err)
 			c.recordErrMetric(host, err)
 			return nil, err
 		}
 		resp, err := c.httpDo(req)
 		if err != nil {
-			log.Error("Failed to send request", "error", err)
+			log.Debug("Failed request", "error", err)
 			c.recordErrMetric(host, err)
 			return nil, err
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			_ = resp.Body.Close()
-			log.Error("Response returned bad status code", "status", resp.StatusCode)
+			log.Debug("Response returned bad status code", "status", resp.StatusCode)
 			c.metrics.IncAPIError(host, strconv.Itoa(resp.StatusCode))
 			return nil, fmt.Errorf("%s: bad status code %d", req.URL, resp.StatusCode)
 		}

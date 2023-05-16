@@ -38,6 +38,9 @@ type RestTask struct {
 	metrics  Metrics
 }
 
+func (task RestTask) Group() string { return task.chainID }
+func (task RestTask) ID() string    { return "latest-block-height" }
+
 func NewRestTask(metrics Metrics, client Client, chain Chain) RestTask {
 	return RestTask{
 		chainID:  chain.ChainID,
@@ -45,10 +48,6 @@ func NewRestTask(metrics Metrics, client Client, chain Chain) RestTask {
 		interval: intervalOrDefault(chain.Interval),
 		metrics:  metrics,
 	}
-}
-
-func (task RestTask) String() string {
-	return fmt.Sprintf("Cosmos REST %s", task.chainID)
 }
 
 // Interval is how often to poll the Endpoint server for data. Defaults to 5s.
@@ -65,7 +64,7 @@ func (task RestTask) Run(ctx context.Context) error {
 		return err
 	}
 	if chainID := block.Block.Header.ChainID; chainID != task.chainID {
-		slog.Warn("Mismatched chain id", "expected", task.chainID, "actual", chainID, "task", task.String())
+		slog.Warn("Mismatched cosmos chain id", "expected", task.chainID, "actual", chainID)
 	}
 	height, err := strconv.ParseFloat(block.Block.Header.Height, 64)
 	if err != nil {
