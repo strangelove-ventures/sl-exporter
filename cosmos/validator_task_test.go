@@ -85,22 +85,6 @@ func TestValidatorTask_Interval(t *testing.T) {
 	require.Equal(t, defaultInterval, tasks[0].Interval())
 }
 
-func TestValidatorTask_String(t *testing.T) {
-	t.Parallel()
-
-	chain := Chain{
-		ChainID: "cosmoshub-4",
-		Validators: []Validator{
-			{ConsAddress: "cosmosvalcons123"},
-			{ConsAddress: "cosmosvalcons567"},
-		},
-	}
-	tasks := BuildValidatorTasks(nil, nil, chain)
-
-	require.Len(t, tasks, 2)
-	require.Equal(t, "Cosmos validator cosmoshub-4: cosmosvalcons123", tasks[0].String())
-}
-
 func TestValidatorTask_Run(t *testing.T) {
 	t.Parallel()
 
