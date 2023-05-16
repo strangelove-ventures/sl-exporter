@@ -78,7 +78,7 @@ func Execute() {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// Add all tasks to worker pool
-	pool, err := metrics.NewWorkerPool(tasks, cfg.NumWorkers)
+	pool, err := metrics.NewWorkerPool(tasks, cfg.NumWorkers, internalMets)
 	if err != nil {
 		logFatal("Failed to create worker pool", err)
 	}
