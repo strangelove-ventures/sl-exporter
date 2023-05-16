@@ -28,6 +28,7 @@ type WorkerPool struct {
 	tasks   []Task
 	metrics TaskErrorMetrics
 	workers int
+	log     *slog.Logger
 }
 
 // NewWorkerPool creates a new worker pool.
@@ -41,6 +42,7 @@ func NewWorkerPool(tasks []Task, numWorkers int, metrics TaskErrorMetrics) (*Wor
 		tasks:   tasks,
 		metrics: metrics,
 		workers: numWorkers,
+		log:     slog.Default(),
 	}, nil
 }
 
@@ -100,7 +102,7 @@ func (w *WorkerPool) doWork(ctx context.Context, ch <-chan Task) {
 	for task := range ch {
 		if err := task.Run(ctx); err != nil {
 			w.metrics.IncFailedTask(task.Group())
-			slog.Error("Task failed", "group", task.Group(), "id", task.ID(), "error", err)
+			w.log.Error("Task failed", "group", task.Group(), "id", task.ID(), "error", err)
 		}
 	}
 }

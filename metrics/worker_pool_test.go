@@ -3,12 +3,14 @@ package metrics
 import (
 	"context"
 	"fmt"
+	"io"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
+	"golang.org/x/exp/slog"
 )
 
 type mockTask struct {
@@ -116,6 +118,7 @@ func TestWorkerPool(t *testing.T) {
 
 		pool, err := NewWorkerPool(tasks, 5, metrics)
 		require.NoError(t, err)
+		pool.log = slog.New(slog.NewTextHandler(io.Discard))
 
 		pool.Start(ctx)
 		require.Equal(t, int64(2), metricCount)
