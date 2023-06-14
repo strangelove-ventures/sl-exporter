@@ -31,7 +31,11 @@ func (p ParamsTask) Group() string { return p.chainID }
 func (p ParamsTask) ID() string    { return "params" }
 
 // Interval is hardcoded to a longer duration because params change rarely.
+<<<<<<< HEAD
 // They require a gov proposal. Therefore, we should minimize hitting rate limits on API nodes.
+=======
+// They require a gov proposal. Additionally, longer duration minimizes API calls to prevent hitting rate limits.
+>>>>>>> parent of 1b89358 (Remove new task)
 func (p ParamsTask) Interval() time.Duration { return 5 * time.Minute }
 
 func (p ParamsTask) Run(ctx context.Context) error {
