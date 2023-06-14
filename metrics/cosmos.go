@@ -48,7 +48,7 @@ func NewCosmos() *Cosmos {
 		valMissedBlocks: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_missed_blocks"),
-				Help: "The number of missed blocks within the signing window by a cosmos validator.",
+				Help: "The number of missed blocks within the slashing window by a cosmos validator.",
 			},
 			[]string{"chain_id", "address"},
 		),
