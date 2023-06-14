@@ -44,7 +44,7 @@ func (s SlashingParams) SignedBlocksWindow() float64 {
 }
 
 // SlashingParams returns the slashing parameters.
-// Docs: https://docs.cosmos.network/swagger/#/Query/SigningInfo
+// Docs: https://docs.cosmos.network/swagger/#/Query/SlashingParams
 func (c RestClient) SlashingParams(ctx context.Context) (SlashingParams, error) {
 	var params SlashingParams
 	err := c.get(ctx, "/cosmos/slashing/v1beta1/params", &params)
