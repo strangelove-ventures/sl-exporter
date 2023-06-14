@@ -24,10 +24,12 @@ func intervalOrDefault(dur time.Duration) time.Duration {
 // Metrics records metrics for Cosmos chains.
 type Metrics interface {
 	SetNodeHeight(chain string, height float64)
+	SetValSlashingParams(chain string, window float64)
 }
 
 type Client interface {
 	LatestBlock(ctx context.Context) (Block, error)
+	SlashingParams(ctx context.Context) (SlashingParams, error)
 }
 
 // RestTask queries the Cosmos REST (aka LCD) API for data and records various metrics.
@@ -57,6 +59,13 @@ func (task RestTask) Interval() time.Duration {
 
 // Run queries the Endpoint server for data and records various metrics.
 func (task RestTask) Run(ctx context.Context) error {
+	if err := task.recordBlockHeight(ctx); err != nil {
+		return err
+	}
+	return task.recordParams(ctx)
+}
+
+func (task RestTask) recordBlockHeight(ctx context.Context) error {
 	cctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	block, err := task.client.LatestBlock(cctx)
@@ -71,5 +80,16 @@ func (task RestTask) Run(ctx context.Context) error {
 		return fmt.Errorf("parse height: %w", err)
 	}
 	task.metrics.SetNodeHeight(task.chainID, height)
+	return nil
+}
+
+func (task RestTask) recordParams(ctx context.Context) error {
+	cctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
+	defer cancel()
+	slash, err := task.client.SlashingParams(cctx)
+	if err != nil {
+		return err
+	}
+	task.metrics.SetValSlashingParams(task.chainID, slash.SignedBlocksWindow())
 	return nil
 }
