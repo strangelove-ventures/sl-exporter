@@ -5,40 +5,36 @@ import (
 	"time"
 )
 
-type ParamsClient interface {
+type ValParamsClient interface {
 	SlashingParams(ctx context.Context) (SlashingParams, error)
 }
 
-type ParamsMetrics interface {
+type ValParamsMetrics interface {
 	SetValSlashingParams(chain string, window float64)
 }
 
-type ParamsTask struct {
+type ValParamsTask struct {
 	chainID string
-	client  ParamsClient
-	metrics ParamsMetrics
+	client  ValParamsClient
+	metrics ValParamsMetrics
 }
 
-func NewParamsTask(metrics ParamsMetrics, client ParamsClient, chain Chain) ParamsTask {
-	return ParamsTask{
+func NewValParamsTask(metrics ValParamsMetrics, client ValParamsClient, chain Chain) ValParamsTask {
+	return ValParamsTask{
 		chainID: chain.ChainID,
 		client:  client,
 		metrics: metrics,
 	}
 }
 
-func (p ParamsTask) Group() string { return p.chainID }
-func (p ParamsTask) ID() string    { return "params" }
+func (p ValParamsTask) Group() string { return p.chainID }
+func (p ValParamsTask) ID() string    { return "params" }
 
-// Interval is hardcoded to a longer duration because params change rarely.
-<<<<<<< HEAD
-// They require a gov proposal. Therefore, we should minimize hitting rate limits on API nodes.
-=======
+// Interval is hardcoded to a longer duration because params rarely change.
 // They require a gov proposal. Additionally, longer duration minimizes API calls to prevent hitting rate limits.
->>>>>>> parent of 1b89358 (Remove new task)
-func (p ParamsTask) Interval() time.Duration { return 5 * time.Minute }
+func (p ValParamsTask) Interval() time.Duration { return 5 * time.Minute }
 
-func (p ParamsTask) Run(ctx context.Context) error {
+func (p ValParamsTask) Run(ctx context.Context) error {
 	cctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	slash, err := p.client.SlashingParams(cctx)

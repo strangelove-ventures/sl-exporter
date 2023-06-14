@@ -30,20 +30,20 @@ func (m mockParamsClient) SlashingParams(ctx context.Context) (SlashingParams, e
 	return m.StubSlashingParams, nil
 }
 
-func TestParamsTask_Interval(t *testing.T) {
+func TestValParamsTask_Interval(t *testing.T) {
 	t.Parallel()
 
-	task := NewParamsTask(nil, nil, Chain{Interval: time.Second})
+	task := NewValParamsTask(nil, nil, Chain{Interval: time.Second})
 
 	require.Equal(t, 5*time.Minute, task.Interval())
 }
 
-func TestParamsTask_Run(t *testing.T) {
+func TestValParamsTask_Run(t *testing.T) {
 	var metrics mockParamsMetrics
 	var client mockParamsClient
 	client.StubSlashingParams.Params.SignedBlocksWindow = "10000"
 
-	task := NewParamsTask(&metrics, client, Chain{ChainID: "cosmoshub-4"})
+	task := NewValParamsTask(&metrics, client, Chain{ChainID: "cosmoshub-4"})
 
 	err := task.Run(context.Background())
 	require.NoError(t, err)
