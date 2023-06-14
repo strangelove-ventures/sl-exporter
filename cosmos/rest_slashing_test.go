@@ -35,7 +35,7 @@ func TestRestClient_SigningStatus(t *testing.T) {
 		}, nil
 	}
 	client := NewRestClient(httpClient)
-	got, err := client.SigningStatus(context.Background(), "cosmosvalcons123")
+	got, err := client.SigningInfo(context.Background(), "cosmosvalcons123")
 	require.NoError(t, err)
 
 	require.True(t, got.ValSigningInfo.Tombstoned)

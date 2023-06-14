@@ -12,8 +12,8 @@ import (
 type mockValRestClient struct {
 	StubBlock Block
 
-	SigningStatusAddress string
-	StubSigningStatus    SigningStatus
+	SigningInfoAddress string
+	StubSigningInfo    SigningInfo
 }
 
 func (m *mockValRestClient) LatestBlock(ctx context.Context) (Block, error) {
@@ -24,13 +24,13 @@ func (m *mockValRestClient) LatestBlock(ctx context.Context) (Block, error) {
 	return m.StubBlock, nil
 }
 
-func (m *mockValRestClient) SigningStatus(ctx context.Context, consaddress string) (SigningStatus, error) {
+func (m *mockValRestClient) SigningInfo(ctx context.Context, consaddress string) (SigningInfo, error) {
 	_, ok := ctx.Deadline()
 	if !ok {
 		panic("expected deadline in context")
 	}
-	m.SigningStatusAddress = consaddress
-	return m.StubSigningStatus, nil
+	m.SigningInfoAddress = consaddress
+	return m.StubSigningInfo, nil
 }
 
 type mockValMetrics struct {
@@ -110,7 +110,7 @@ func TestValidatorTask_Run(t *testing.T) {
 		var metrics mockValMetrics
 		tasks := BuildValidatorTasks(&metrics, client, chain)
 		client.StubBlock.Block.LastCommit.Height = "1"
-		client.StubSigningStatus.ValSigningInfo.MissedBlocksCounter = "0"
+		client.StubSigningInfo.ValSigningInfo.MissedBlocksCounter = "0"
 
 		require.Len(t, tasks, 1)
 		task := tasks[0]
@@ -149,13 +149,13 @@ func TestValidatorTask_Run(t *testing.T) {
 			// Tombstoned takes precedence
 			{now.Add(time.Hour), true, JailStatusTombstoned},
 		} {
-			var status SigningStatus
+			var status SigningInfo
 			status.ValSigningInfo.Tombstoned = tt.Tombstoned
 			status.ValSigningInfo.JailedUntil = tt.JailedUntil
 			status.ValSigningInfo.MissedBlocksCounter = "0"
 
 			var client mockValRestClient
-			client.StubSigningStatus = status
+			client.StubSigningInfo = status
 			client.StubBlock.Block.LastCommit.Height = "1"
 
 			var metrics mockValMetrics
@@ -173,7 +173,7 @@ func TestValidatorTask_Run(t *testing.T) {
 			err := tasks[0].Run(ctx)
 
 			require.NoError(t, err)
-			require.Equal(t, client.SigningStatusAddress, addr)
+			require.Equal(t, client.SigningInfoAddress, addr)
 
 			require.Equal(t, "cosmoshub-4", metrics.GotChain)
 			require.Equal(t, addr, metrics.GotAddr)
@@ -182,11 +182,11 @@ func TestValidatorTask_Run(t *testing.T) {
 	})
 
 	t.Run("happy path - missed blocks", func(t *testing.T) {
-		var status SigningStatus
+		var status SigningInfo
 		status.ValSigningInfo.MissedBlocksCounter = "79"
 
 		var client mockValRestClient
-		client.StubSigningStatus = status
+		client.StubSigningInfo = status
 		client.StubBlock.Block.LastCommit.Height = "1"
 
 		var metrics mockValMetrics
@@ -203,7 +203,7 @@ func TestValidatorTask_Run(t *testing.T) {
 		err := tasks[0].Run(ctx)
 		require.NoError(t, err)
 
-		require.Equal(t, client.SigningStatusAddress, addr)
+		require.Equal(t, client.SigningInfoAddress, addr)
 		require.Equal(t, "cosmoshub-4", metrics.GotChain)
 		require.Equal(t, addr, metrics.GotAddr)
 

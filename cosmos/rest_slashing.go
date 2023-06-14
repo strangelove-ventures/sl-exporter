@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// SigningStatus determines whether a validator is jailed or not.
-type SigningStatus struct {
+// SigningInfo determines whether a validator is jailed or not.
+type SigningInfo struct {
 	ValSigningInfo struct {
 		Address             string    `json:"address"`
 		StartHeight         string    `json:"start_height"`
@@ -18,10 +18,11 @@ type SigningStatus struct {
 	} `json:"val_signing_info"`
 }
 
-// SigningStatus returns the signing status of a validator given the consensus address.
-func (c RestClient) SigningStatus(ctx context.Context, consaddress string) (SigningStatus, error) {
+// SigningInfo returns the signing status of a validator given the consensus address.
+// Docs: https://docs.cosmos.network/swagger/#/Query/SigningInfo
+func (c RestClient) SigningInfo(ctx context.Context, consaddress string) (SigningInfo, error) {
 	p := path.Join("/cosmos/slashing/v1beta1/signing_infos", consaddress)
-	var status SigningStatus
+	var status SigningInfo
 	err := c.get(ctx, p, &status)
 	return status, err
 }
