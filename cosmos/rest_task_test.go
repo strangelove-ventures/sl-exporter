@@ -11,14 +11,6 @@ import (
 type mockCosmosMetrics struct {
 	NodeHeightChain string
 	NodeHeight      float64
-
-	SlashingParamsChain string
-	SlashingWindow      float64
-}
-
-func (m *mockCosmosMetrics) SetValSlashingParams(chain string, window float64) {
-	m.SlashingParamsChain = chain
-	m.SlashingWindow = window
 }
 
 func (m *mockCosmosMetrics) SetNodeHeight(chain string, height float64) {
@@ -27,16 +19,7 @@ func (m *mockCosmosMetrics) SetNodeHeight(chain string, height float64) {
 }
 
 type mockRestClient struct {
-	StubBlock          Block
-	StubSlashingParams SlashingParams
-}
-
-func (m *mockRestClient) SlashingParams(ctx context.Context) (SlashingParams, error) {
-	_, ok := ctx.Deadline()
-	if !ok {
-		panic("expected deadline in context")
-	}
-	return m.StubSlashingParams, nil
+	StubBlock Block
 }
 
 func (m *mockRestClient) LatestBlock(ctx context.Context) (Block, error) {
@@ -64,9 +47,11 @@ func TestRestTask_Run(t *testing.T) {
 
 	t.Run("happy path", func(t *testing.T) {
 		var client mockRestClient
-		client.StubBlock.Block.Header.ChainID = "cosmoshub-4"
-		client.StubBlock.Block.Header.Height = "1234567890"
-		client.StubSlashingParams.Params.SignedBlocksWindow = "10000"
+
+		var blk Block
+		blk.Block.Header.Height = "1234567890"
+		blk.Block.Header.ChainID = "cosmoshub-4"
+		client.StubBlock = blk
 
 		chain := Chain{
 			ChainID: "cosmoshub-4",
@@ -81,8 +66,5 @@ func TestRestTask_Run(t *testing.T) {
 
 		require.Equal(t, float64(1234567890), metrics.NodeHeight)
 		require.Equal(t, "cosmoshub-4", metrics.NodeHeightChain)
-
-		require.Equal(t, "cosmoshub-4", metrics.SlashingParamsChain)
-		require.Equal(t, float64(10000), metrics.SlashingWindow)
 	})
 }
