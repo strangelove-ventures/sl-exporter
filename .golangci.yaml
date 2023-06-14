@@ -14,12 +14,6 @@ run:
   modules-download-mode: readonly
 
 linters-settings:
-  depguard:
-    list-type: denylist
-    packages:
-      - github.com/stretchr/testify/assert
-    packages-with-error-message:
-      - github.com/stretchr/testify/assert: "Use github.com/stretchr/testify/require instead of assert"
   govet:
     check-shadowing: true
   misspell:
@@ -37,7 +31,7 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
+#    - depguard # TODO: re-enable at some point. Moved to v2 which broke linting. Kept getting errors such as: cmd/config.go:4:2: import 'github.com/spf13/viper' is not allowed from list 'Main' (depguard)
     - errcheck
     - errorlint
     - exportloopref
