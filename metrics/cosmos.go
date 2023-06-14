@@ -88,15 +88,10 @@ func (c *Cosmos) SetValMissedBlocks(chain, consaddress string, missed float64) {
 	c.valMissedBlocks.WithLabelValues(chain, consaddress).Set(missed)
 }
 
-// SlashingParams are chain-level parameters for validator slashing.
-type SlashingParams struct {
-	Window float64
-}
-
 // SetValSlashingParams sets the slashing window for all validators on the chain.
 // Accepts a struct for future expansion.
-func (c *Cosmos) SetValSlashingParams(chain string, params SlashingParams) {
-	c.valSlashingWindow.WithLabelValues(chain).Set(params.Window)
+func (c *Cosmos) SetValSlashingParams(chain string, window float64) {
+	c.valSlashingWindow.WithLabelValues(chain).Set(window)
 }
 
 // Metrics returns all metrics for Cosmos chains to be added to a Prometheus registry.

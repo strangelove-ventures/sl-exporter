@@ -116,10 +116,7 @@ func TestCosmos_SetValSlashingParams(t *testing.T) {
 	reg.MustRegister(metrics.Metrics()[5])
 	h := metricsHandler(reg)
 
-	params := SlashingParams{
-		Window: 100,
-	}
-	metrics.SetValSlashingParams("cosmoshub-4", params)
+	metrics.SetValSlashingParams("cosmoshub-4", 100)
 
 	r := httptest.NewRecorder()
 	h.ServeHTTP(r, stubRequest)
