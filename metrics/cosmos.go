@@ -12,6 +12,7 @@ type Cosmos struct {
 	valBlockSignCounter *prometheus.CounterVec
 	valSignedBlock      *prometheus.GaugeVec
 	valMissedBlocks     *prometheus.GaugeVec
+	valSlashingWindow   *prometheus.GaugeVec
 }
 
 func NewCosmos() *Cosmos {
@@ -47,9 +48,16 @@ func NewCosmos() *Cosmos {
 		valMissedBlocks: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_missed_blocks"),
-				Help: "The latest missed blocks for a cosmos validator as reported by API endpoint cosmos/slashing/v1beta1/signing_infos",
+				Help: "The number of missed blocks within the signing window by a cosmos validator.",
 			},
 			[]string{"chain_id", "address"},
+		),
+		valSlashingWindow: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "slashing_window_blocks"),
+				Help: "The slashing window (in number of blocks) for a cosmos validator.",
+			},
+			[]string{"chain_id"},
 		),
 	}
 }
@@ -75,9 +83,20 @@ func (c *Cosmos) SetValSignedBlock(chain, consaddress string, height float64) {
 	c.valSignedBlock.WithLabelValues(chain, consaddress).Set(height)
 }
 
-// SetValMissedBlocks sets the number of missed blocks for a validator.
+// SetValMissedBlocks sets the number of missed blocks within the slashing window for a validator.
 func (c *Cosmos) SetValMissedBlocks(chain, consaddress string, missed float64) {
 	c.valMissedBlocks.WithLabelValues(chain, consaddress).Set(missed)
+}
+
+// SlashingParams are chain-level parameters for validator slashing.
+type SlashingParams struct {
+	Window float64
+}
+
+// SetValSlashingParams sets the slashing window for all validators on the chain.
+// Accepts a struct for future expansion.
+func (c *Cosmos) SetValSlashingParams(chain string, params SlashingParams) {
+	c.valSlashingWindow.WithLabelValues(chain).Set(params.Window)
 }
 
 // Metrics returns all metrics for Cosmos chains to be added to a Prometheus registry.
@@ -88,5 +107,6 @@ func (c *Cosmos) Metrics() []prometheus.Collector {
 		c.valBlockSignCounter,
 		c.valSignedBlock,
 		c.valMissedBlocks,
+		c.valSlashingWindow,
 	}
 }
