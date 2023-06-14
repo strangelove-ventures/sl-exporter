@@ -3,6 +3,7 @@ package cosmos
 import (
 	"context"
 	"path"
+	"strconv"
 	"time"
 )
 
@@ -22,7 +23,30 @@ type SigningInfo struct {
 // Docs: https://docs.cosmos.network/swagger/#/Query/SigningInfo
 func (c RestClient) SigningInfo(ctx context.Context, consaddress string) (SigningInfo, error) {
 	p := path.Join("/cosmos/slashing/v1beta1/signing_infos", consaddress)
-	var status SigningInfo
-	err := c.get(ctx, p, &status)
-	return status, err
+	var info SigningInfo
+	err := c.get(ctx, p, &info)
+	return info, err
+}
+
+type SlashingParams struct {
+	Params struct {
+		SignedBlocksWindow      string `json:"signed_blocks_window"`
+		MinSignedPerWindow      string `json:"min_signed_per_window"`
+		DowntimeJailDuration    string `json:"downtime_jail_duration"`
+		SlashFractionDoubleSign string `json:"slash_fraction_double_sign"`
+		SlashFractionDowntime   string `json:"slash_fraction_downtime"`
+	} `json:"params"`
+}
+
+func (s SlashingParams) SignedBlocksWindow() float64 {
+	v, _ := strconv.ParseFloat(s.Params.SignedBlocksWindow, 64)
+	return v
+}
+
+// SlashingParams returns the slashing parameters.
+// Docs: https://docs.cosmos.network/swagger/#/Query/SigningInfo
+func (c RestClient) SlashingParams(ctx context.Context) (SlashingParams, error) {
+	var params SlashingParams
+	err := c.get(ctx, "/cosmos/slashing/v1beta1/params", &params)
+	return params, err
 }
