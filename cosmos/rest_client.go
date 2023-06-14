@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+// RestClient is a client for the Cosmos REST API.
+// To find a list of endpoints, try: https://docs.cosmos.network/swagger/
 type RestClient struct {
 	client HTTPClient
 }
