@@ -89,7 +89,7 @@ func (c *Cosmos) SetValMissedBlocks(chain, consaddress string, missed float64) {
 }
 
 // SetValSlashingParams sets the slashing window for all validators on the chain.
-// Accepts a struct for future expansion.
+// Extend this method to set other slashing parameters.
 func (c *Cosmos) SetValSlashingParams(chain string, window float64) {
 	c.valSlashingWindow.WithLabelValues(chain).Set(window)
 }
