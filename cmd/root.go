@@ -139,7 +139,10 @@ func buildCosmosTasks(cosmosMets *metrics.Cosmos, internalMets *metrics.Internal
 		}
 
 		restClient := cosmos.NewRestClient(metrics.NewFallbackClient(httpClient, internalMets, urls))
-		tasks = append(tasks, cosmos.NewRestTask(cosmosMets, restClient, chain))
+		tasks = append(tasks,
+			cosmos.NewRestTask(cosmosMets, restClient, chain),
+			cosmos.NewParamsTask(cosmosMets, restClient, chain),
+		)
 		valTasks := cosmos.BuildValidatorTasks(cosmosMets, restClient, chain)
 		tasks = append(tasks, toTasks(valTasks)...)
 	}
