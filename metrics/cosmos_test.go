@@ -48,7 +48,7 @@ func TestCosmos_SetValJailStatus(t *testing.T) {
 		h.ServeHTTP(r, stubRequest)
 
 		want := fmt.Sprintf(`
-sl_exporter_cosmos_val_latest_jailed_status{address="cosmosvalcons123",chain_id="cosmoshub-4"} %d`,
+sl_exporter_cosmos_val_jailed_status{address="cosmosvalcons123",chain_id="cosmoshub-4"} %d`,
 			tt.WantValue)
 
 		require.Contains(t, r.Body.String(), want, tt)
@@ -87,7 +87,7 @@ func TestCosmos_SetValSignedBlock(t *testing.T) {
 	r := httptest.NewRecorder()
 	h.ServeHTTP(r, stubRequest)
 
-	const want = `sl_exporter_cosmos_val_latest_signed_block_height{address="cosmosvalcons123",chain_id="cosmoshub-4"} 12345`
+	const want = `sl_exporter_cosmos_val_signed_block_height{address="cosmosvalcons123",chain_id="cosmoshub-4"} 12345`
 	require.Contains(t, r.Body.String(), want)
 }
 
@@ -104,7 +104,7 @@ func TestCosmos_SetValMissedBlocks(t *testing.T) {
 	r := httptest.NewRecorder()
 	h.ServeHTTP(r, stubRequest)
 
-	const want = `sl_exporter_cosmos_val_latest_missed_blocks{address="cosmosvalcons123",chain_id="cosmoshub-4"} 9`
+	const want = `sl_exporter_cosmos_val_missed_blocks{address="cosmosvalcons123",chain_id="cosmoshub-4"} 9`
 	require.Contains(t, r.Body.String(), want)
 }
 
