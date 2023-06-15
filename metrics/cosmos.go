@@ -26,7 +26,7 @@ func NewCosmos() *Cosmos {
 		),
 		valJailGauge: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_jailed_status"),
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "jailed_status"),
 				Help: "0 if the cosmos validator is not jailed. 1 if the validator is jailed. 2 if the validator is tombstoned.",
 			},
 			[]string{"chain_id", "address"},
@@ -40,14 +40,14 @@ func NewCosmos() *Cosmos {
 		),
 		valSignedBlock: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_signed_block_height"),
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "signed_block_height"),
 				Help: "The latest observed block signed by a cosmos validator.",
 			},
 			[]string{"chain_id", "address"},
 		),
 		valMissedBlocks: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "latest_missed_blocks"),
+				Name: prometheus.BuildFQName(namespace, cosmosValSubsystem, "missed_blocks"),
 				Help: "The number of missed blocks within the slashing window by a cosmos validator.",
 			},
 			[]string{"chain_id", "address"},
