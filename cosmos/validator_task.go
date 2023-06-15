@@ -30,7 +30,7 @@ type ValidatorMetrics interface {
 
 type ValidatorClient interface {
 	LatestBlock(ctx context.Context) (Block, error)
-	SigningStatus(ctx context.Context, consaddress string) (SigningStatus, error)
+	SigningInfo(ctx context.Context, consaddress string) (SigningInfo, error)
 }
 
 // ValidatorTask queries the Cosmos REST (aka LCD) API for data and records metrics specific to a validator.
@@ -110,7 +110,7 @@ func (task ValidatorTask) processSignedBlocks(ctx context.Context) error {
 func (task ValidatorTask) processSigningStatus(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
-	resp, err := task.client.SigningStatus(ctx, task.consaddress)
+	resp, err := task.client.SigningInfo(ctx, task.consaddress)
 	if err != nil {
 		return err
 	}

@@ -15,11 +15,11 @@ run:
 
 linters-settings:
   depguard:
-    list-type: denylist
-    packages:
-      - github.com/stretchr/testify/assert
-    packages-with-error-message:
-      - github.com/stretchr/testify/assert: "Use github.com/stretchr/testify/require instead of assert"
+    rules:
+      tests:
+        deny:
+          - pkg: github.com/stretchr/testify/assert
+            desc: "Use github.com/stretchr/testify/require instead of testify/assert"
   govet:
     check-shadowing: true
   misspell:

@@ -107,3 +107,20 @@ func TestCosmos_SetValMissedBlocks(t *testing.T) {
 	const want = `sl_exporter_cosmos_val_latest_missed_blocks{address="cosmosvalcons123",chain_id="cosmoshub-4"} 9`
 	require.Contains(t, r.Body.String(), want)
 }
+
+func TestCosmos_SetValSlashingParams(t *testing.T) {
+	t.Parallel()
+
+	metrics := NewCosmos()
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(metrics.Metrics()[5])
+	h := metricsHandler(reg)
+
+	metrics.SetValSlashingParams("cosmoshub-4", 100)
+
+	r := httptest.NewRecorder()
+	h.ServeHTTP(r, stubRequest)
+
+	const want = `sl_exporter_cosmos_val_slashing_window_blocks{chain_id="cosmoshub-4"} 100`
+	require.Contains(t, r.Body.String(), want)
+}

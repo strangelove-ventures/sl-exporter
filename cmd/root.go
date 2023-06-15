@@ -142,6 +142,9 @@ func buildCosmosTasks(cosmosMets *metrics.Cosmos, internalMets *metrics.Internal
 		tasks = append(tasks, cosmos.NewRestTask(cosmosMets, restClient, chain))
 		valTasks := cosmos.BuildValidatorTasks(cosmosMets, restClient, chain)
 		tasks = append(tasks, toTasks(valTasks)...)
+		if len(valTasks) > 0 {
+			tasks = append(tasks, cosmos.NewValParamsTask(cosmosMets, restClient, chain))
+		}
 	}
 
 	return tasks
