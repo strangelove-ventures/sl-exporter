@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/cosmos/cosmos-sdk v0.47.2
-	github.com/cosmtrek/air v1.43.0
+	github.com/cosmtrek/air v1.44.0
 	github.com/prometheus/client_golang v1.15.1
 	github.com/prometheus/common v0.44.0
 	github.com/spf13/viper v1.16.0
