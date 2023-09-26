@@ -8,7 +8,15 @@ type Chain struct {
 	Interval time.Duration
 	// Rest are the Cosmos REST (aka LCD) endpoints to poll for data.
 	Rest       []Endpoint
+	Accounts   []Account
 	Validators []Validator
+}
+
+type Account struct {
+	Address string
+	// Alias is a human-readable name for the account, e.g. cosmoshub-validator.
+	Alias  string
+	Denoms []string
 }
 
 type Validator struct {
