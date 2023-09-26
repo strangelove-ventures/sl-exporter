@@ -7,6 +7,7 @@ import (
 
 // Cosmos records metrics for Cosmos chains
 type Cosmos struct {
+	accountBalance      *prometheus.GaugeVec
 	heightGauge         *prometheus.GaugeVec
 	valJailGauge        *prometheus.GaugeVec
 	valBlockSignCounter *prometheus.CounterVec
@@ -17,6 +18,13 @@ type Cosmos struct {
 
 func NewCosmos() *Cosmos {
 	return &Cosmos{
+		accountBalance: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: prometheus.BuildFQName(namespace, cosmosSubsystem, "account_balance"),
+				Help: "Latest balance for a cosmos account.",
+			},
+			[]string{"chain_id", "alias", "address", "denom"},
+		),
 		heightGauge: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: prometheus.BuildFQName(namespace, cosmosSubsystem, "latest_block_height"),
@@ -62,6 +70,11 @@ func NewCosmos() *Cosmos {
 	}
 }
 
+// SetAccountBalance records the balance of an account for a given denom.
+func (c *Cosmos) SetAccountBalance(chain, alias, address, denom string, balance float64) {
+	c.accountBalance.WithLabelValues(chain, alias, address, denom).Set(balance)
+}
+
 // SetNodeHeight records the block height on the public_rpc_node_height gauge.
 func (c *Cosmos) SetNodeHeight(chain string, height float64) {
 	c.heightGauge.WithLabelValues(chain).Set(height)
@@ -103,5 +116,6 @@ func (c *Cosmos) Metrics() []prometheus.Collector {
 		c.valSignedBlock,
 		c.valMissedBlocks,
 		c.valSlashingWindow,
+		c.accountBalance,
 	}
 }

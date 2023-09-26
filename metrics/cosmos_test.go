@@ -124,3 +124,20 @@ func TestCosmos_SetValSlashingParams(t *testing.T) {
 	const want = `sl_exporter_cosmos_val_slashing_window_blocks{chain_id="cosmoshub-4"} 100`
 	require.Contains(t, r.Body.String(), want)
 }
+
+func TestCosmos_SetAccountBalance(t *testing.T) {
+	t.Parallel()
+
+	reg := prometheus.NewRegistry()
+	metrics := NewCosmos()
+	reg.MustRegister(metrics.Metrics()[6])
+
+	metrics.SetAccountBalance("cosmoshub-4", "cosmoshub", "cosmos123", "uatom", 56789)
+
+	h := metricsHandler(reg)
+	r := httptest.NewRecorder()
+	h.ServeHTTP(r, stubRequest)
+
+	const want = `sl_exporter_cosmos_account_balance{address="cosmos123",alias="cosmoshub",chain_id="cosmoshub-4",denom="uatom"} 56789`
+	require.Contains(t, r.Body.String(), want)
+}
