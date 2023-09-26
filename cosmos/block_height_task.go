@@ -30,19 +30,19 @@ type Client interface {
 	LatestBlock(ctx context.Context) (Block, error)
 }
 
-// RestTask queries the Cosmos REST (aka LCD) API for data and records various metrics.
-type RestTask struct {
+// BlockHeightTask queries the Cosmos REST (aka LCD) API for data and records various metrics.
+type BlockHeightTask struct {
 	chainID  string
 	client   Client
 	interval time.Duration
 	metrics  Metrics
 }
 
-func (task RestTask) Group() string { return task.chainID }
-func (task RestTask) ID() string    { return "latest-block-height" }
+func (task BlockHeightTask) Group() string { return task.chainID }
+func (task BlockHeightTask) ID() string    { return "latest-block-height" }
 
-func NewRestTask(metrics Metrics, client Client, chain Chain) RestTask {
-	return RestTask{
+func NewBlockHeightTask(metrics Metrics, client Client, chain Chain) BlockHeightTask {
+	return BlockHeightTask{
 		chainID:  chain.ChainID,
 		client:   client,
 		interval: intervalOrDefault(chain.Interval),
@@ -51,12 +51,12 @@ func NewRestTask(metrics Metrics, client Client, chain Chain) RestTask {
 }
 
 // Interval is how often to poll the Endpoint server for data. Defaults to 5s.
-func (task RestTask) Interval() time.Duration {
+func (task BlockHeightTask) Interval() time.Duration {
 	return intervalOrDefault(task.interval)
 }
 
 // Run queries the Endpoint server for data and records various metrics.
-func (task RestTask) Run(ctx context.Context) error {
+func (task BlockHeightTask) Run(ctx context.Context) error {
 	cctx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 	defer cancel()
 	block, err := task.client.LatestBlock(cctx)

@@ -33,10 +33,10 @@ func (m *mockRestClient) LatestBlock(ctx context.Context) (Block, error) {
 func TestRestTask_Interval(t *testing.T) {
 	t.Parallel()
 
-	task := NewRestTask(nil, nil, Chain{Interval: time.Second})
+	task := NewBlockHeightTask(nil, nil, Chain{Interval: time.Second})
 	require.Equal(t, time.Second, task.Interval())
 
-	task = NewRestTask(nil, nil, Chain{})
+	task = NewBlockHeightTask(nil, nil, Chain{})
 	require.Equal(t, defaultInterval, task.Interval())
 }
 
@@ -59,7 +59,7 @@ func TestRestTask_Run(t *testing.T) {
 		}
 
 		var metrics mockCosmosMetrics
-		task := NewRestTask(&metrics, &client, chain)
+		task := NewBlockHeightTask(&metrics, &client, chain)
 
 		err := task.Run(ctx)
 		require.NoError(t, err)
