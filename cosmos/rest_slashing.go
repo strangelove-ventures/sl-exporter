@@ -2,6 +2,7 @@ package cosmos
 
 import (
 	"context"
+	"net/url"
 	"path"
 	"strconv"
 	"time"
@@ -24,7 +25,7 @@ type SigningInfo struct {
 func (c RestClient) SigningInfo(ctx context.Context, consaddress string) (SigningInfo, error) {
 	p := path.Join("/cosmos/slashing/v1beta1/signing_infos", consaddress)
 	var info SigningInfo
-	err := c.get(ctx, p, &info)
+	err := c.get(ctx, url.URL{Path: p}, &info)
 	return info, err
 }
 
@@ -47,6 +48,6 @@ func (s SlashingParams) SignedBlocksWindow() float64 {
 // Docs: https://docs.cosmos.network/swagger/#/Query/SlashingParams
 func (c RestClient) SlashingParams(ctx context.Context) (SlashingParams, error) {
 	var params SlashingParams
-	err := c.get(ctx, "/cosmos/slashing/v1beta1/params", &params)
+	err := c.get(ctx, url.URL{Path: "/cosmos/slashing/v1beta1/params"}, &params)
 	return params, err
 }

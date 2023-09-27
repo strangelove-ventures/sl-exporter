@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,10 +17,10 @@ import (
 var latestBlockFixture []byte
 
 type mockHTTPClient struct {
-	GetFn func(ctx context.Context, path string) (*http.Response, error)
+	GetFn func(ctx context.Context, path url.URL) (*http.Response, error)
 }
 
-func (m mockHTTPClient) Get(ctx context.Context, path string) (*http.Response, error) {
+func (m mockHTTPClient) Get(ctx context.Context, path url.URL) (*http.Response, error) {
 	if m.GetFn != nil {
 		return m.GetFn(ctx, path)
 	}
@@ -33,9 +34,9 @@ func TestClient_LatestBlock(t *testing.T) {
 
 	t.Run("happy path", func(t *testing.T) {
 		var httpClient mockHTTPClient
-		httpClient.GetFn = func(ctx context.Context, path string) (*http.Response, error) {
+		httpClient.GetFn = func(ctx context.Context, path url.URL) (*http.Response, error) {
 			require.NotNil(t, ctx)
-			require.Equal(t, "/cosmos/base/tendermint/v1beta1/blocks/latest", path)
+			require.Equal(t, "/cosmos/base/tendermint/v1beta1/blocks/latest", path.Path)
 
 			return &http.Response{
 				StatusCode: 200,
@@ -53,7 +54,7 @@ func TestClient_LatestBlock(t *testing.T) {
 
 	t.Run("error", func(t *testing.T) {
 		var httpClient mockHTTPClient
-		httpClient.GetFn = func(ctx context.Context, path string) (*http.Response, error) {
+		httpClient.GetFn = func(ctx context.Context, path url.URL) (*http.Response, error) {
 			return nil, errors.New("boom")
 		}
 		client := NewRestClient(&httpClient)

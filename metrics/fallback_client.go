@@ -37,10 +37,13 @@ func NewFallbackClient(client *http.Client, metrics ClientMetrics, hosts []url.U
 
 const unknownErrReason = "unknown"
 
-func (c FallbackClient) Get(ctx context.Context, path string) (*http.Response, error) {
+func (c FallbackClient) Get(ctx context.Context, path url.URL) (*http.Response, error) {
 	doGet := func(host url.URL) (*http.Response, error) {
 		log := c.log.With("host", host.Hostname(), "path", path, "method", http.MethodGet)
-		host.Path = path
+
+		host.Path = path.Path
+		host.RawQuery = path.RawQuery
+
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, host.String(), nil)
 		if err != nil {
 			log.Debug("Failed to create request", "error", err)

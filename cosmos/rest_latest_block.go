@@ -2,6 +2,7 @@ package cosmos
 
 import (
 	"context"
+	"net/url"
 	"time"
 )
 
@@ -67,6 +68,6 @@ type Block struct {
 // LatestBlock queries the latest block from the Cosmos REST API given the baseURL.
 func (c RestClient) LatestBlock(ctx context.Context) (Block, error) {
 	var latestBlock Block
-	err := c.get(ctx, "/cosmos/base/tendermint/v1beta1/blocks/latest", &latestBlock)
+	err := c.get(ctx, url.URL{Path: "/cosmos/base/tendermint/v1beta1/blocks/latest"}, &latestBlock)
 	return latestBlock, err
 }

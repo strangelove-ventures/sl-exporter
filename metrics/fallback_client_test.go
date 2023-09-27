@@ -53,7 +53,7 @@ func TestFallbackClient_Get(t *testing.T) {
 			return stubResp, nil
 		}
 
-		resp, err := client.Get(ctx, "/v1/foo")
+		resp, err := client.Get(ctx, url.URL{Path: "/v1/foo"})
 		require.NoError(t, resp.Body.Close())
 
 		require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestFallbackClient_Get(t *testing.T) {
 			return stubResp, nil
 		}
 
-		resp, err := client.Get(ctx, "/v1/foo")
+		resp, err := client.Get(ctx, url.URL{Path: "/v1/foo"})
 		require.NoError(t, resp.Body.Close())
 
 		require.NoError(t, err)
@@ -106,7 +106,7 @@ func TestFallbackClient_Get(t *testing.T) {
 			return stubResp, nil
 		}
 
-		resp, err := client.Get(ctx, "")
+		resp, err := client.Get(ctx, url.URL{})
 		require.NoError(t, resp.Body.Close())
 
 		require.NoError(t, err)
@@ -136,7 +136,7 @@ func TestFallbackClient_Get(t *testing.T) {
 		}
 
 		//nolint
-		_, err := client.Get(ctx, "")
+		_, err := client.Get(ctx, url.URL{})
 
 		require.Error(t, err)
 	})
@@ -163,7 +163,7 @@ func TestFallbackClient_Get(t *testing.T) {
 			}
 
 			//nolint
-			_, _ = client.Get(ctx, "")
+			_, _ = client.Get(ctx, url.URL{})
 
 			require.Equal(t, "error.example.com", metrics.GotHost.Hostname(), tt)
 			require.Equal(t, tt.WantMsg, metrics.GotErrMsg, tt)
@@ -180,7 +180,7 @@ func TestFallbackClient_Get(t *testing.T) {
 		}
 
 		//nolint
-		_, _ = client.Get(ctx, "")
+		_, _ = client.Get(ctx, url.URL{})
 
 		require.Zero(t, metrics.IncClientErrCalls)
 	})
