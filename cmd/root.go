@@ -146,7 +146,7 @@ func buildCosmosTasks(cosmosMets *metrics.Cosmos, internalMets *metrics.Internal
 			tasks = append(tasks, cosmos.NewValParamsTask(cosmosMets, restClient, chain))
 		}
 
-		// For loop work around tasks being an array of Task interface
+		// For loop works around tasks being an array of Task interface
 		accountTasks := cosmos.NewAccountTasks(cosmosMets, restClient, chain)
 		for i := range accountTasks {
 			tasks = append(tasks, accountTasks[i])

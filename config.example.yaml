@@ -33,7 +33,9 @@ cosmos:
     # Query account balances for cosmos addresses.
     accounts:
       - address: cosmos130mdu9a0etmeuw52qfxk73pn0ga6gawkryh2z6
+        # Alias allows you to set a human-readable name for the account.
         alias: cosmoshub-test
+        # Denoms are case-sensitive. If the denom does not exist, the API returns a 0 balance. (Not ideal)
         denoms: ["uatom", "ibc/B05539B66B72E2739B986B86391E5D08F12B8D5D2C2A7F8F8CF9ADF674DFA231"]
   - chainID: osmosis-1
     rest:
