@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -15,9 +16,9 @@ func TestRestClient_SigningStatus(t *testing.T) {
 	t.Parallel()
 
 	var httpClient mockHTTPClient
-	httpClient.GetFn = func(ctx context.Context, path string) (*http.Response, error) {
+	httpClient.GetFn = func(ctx context.Context, path url.URL) (*http.Response, error) {
 		require.NotNil(t, ctx)
-		require.Equal(t, "/cosmos/slashing/v1beta1/signing_infos/cosmosvalcons123", path)
+		require.Equal(t, "/cosmos/slashing/v1beta1/signing_infos/cosmosvalcons123", path.Path)
 
 		const fixture = `{
  "val_signing_info": {
@@ -46,9 +47,9 @@ func TestRestClient_SlashingParams(t *testing.T) {
 	t.Parallel()
 
 	var httpClient mockHTTPClient
-	httpClient.GetFn = func(ctx context.Context, path string) (*http.Response, error) {
+	httpClient.GetFn = func(ctx context.Context, path url.URL) (*http.Response, error) {
 		require.NotNil(t, ctx)
-		require.Equal(t, "/cosmos/slashing/v1beta1/params", path)
+		require.Equal(t, "/cosmos/slashing/v1beta1/params", path.Path)
 
 		const fixture = `{
   "params": {

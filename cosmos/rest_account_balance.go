@@ -32,7 +32,7 @@ func (c RestClient) AccountBalance(ctx context.Context, account, denom string) (
 		}
 	}
 
-	err := c.get(ctx, u.String(), &resp)
+	err := c.get(ctx, u, &resp)
 	if err != nil {
 		return AccountBalance{}, err
 	}

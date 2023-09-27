@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // RestClient is a client for the Cosmos REST API.
@@ -14,7 +15,7 @@ type RestClient struct {
 }
 
 type HTTPClient interface {
-	Get(ctx context.Context, path string) (*http.Response, error)
+	Get(ctx context.Context, path url.URL) (*http.Response, error)
 }
 
 func NewRestClient(c HTTPClient) *RestClient {
@@ -24,8 +25,8 @@ func NewRestClient(c HTTPClient) *RestClient {
 }
 
 // response must be a pointer to a datatype (typically a struct)
-func (c RestClient) get(ctx context.Context, url string, response any) error {
-	resp, err := c.client.Get(ctx, url)
+func (c RestClient) get(ctx context.Context, path url.URL, response any) error {
+	resp, err := c.client.Get(ctx, path)
 	if err != nil {
 		return err
 	}

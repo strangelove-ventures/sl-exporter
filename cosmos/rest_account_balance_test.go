@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -22,9 +23,10 @@ func TestAccountBalance(t *testing.T) {
 			account = "cosmos123"
 			denom   = "ustake"
 		)
-		httpClient.GetFn = func(ctx context.Context, path string) (*http.Response, error) {
+		httpClient.GetFn = func(ctx context.Context, path url.URL) (*http.Response, error) {
 			require.NotNil(t, ctx)
-			require.Equal(t, "/cosmos/bank/v1beta1/balances/cosmos123/by_denom?denom=ustake", path)
+			require.Equal(t, "/cosmos/bank/v1beta1/balances/cosmos123/by_denom", path.Path)
+			require.Equal(t, "denom=ustake", path.RawQuery)
 
 			const response = `{
   "balance": {
@@ -51,7 +53,7 @@ func TestAccountBalance(t *testing.T) {
 
 	t.Run("error", func(t *testing.T) {
 		var httpClient mockHTTPClient
-		httpClient.GetFn = func(ctx context.Context, path string) (*http.Response, error) {
+		httpClient.GetFn = func(ctx context.Context, _ url.URL) (*http.Response, error) {
 			return nil, errors.New("boom")
 		}
 		client := NewRestClient(&httpClient)
