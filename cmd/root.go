@@ -42,9 +42,9 @@ func Execute() {
 		logFatal("Failed to parse log level", err)
 	}
 	if cfg.LogFormat == "json" {
-		slog.SetDefault(slog.New(slog.HandlerOptions{Level: programLevel}.NewJSONHandler(os.Stderr)))
+		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})))
 	} else {
-		slog.SetDefault(slog.New(slog.HandlerOptions{Level: programLevel}.NewTextHandler(os.Stderr)))
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})))
 	}
 
 	// Parse config
