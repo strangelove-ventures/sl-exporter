@@ -1,5 +1,5 @@
 # Build the exporter binary
-FROM golang:1.20.2 as builder
+FROM golang:1.23 as builder
 
 ARG VERSION=0.0.0
 ARG REVISION=abcdef
