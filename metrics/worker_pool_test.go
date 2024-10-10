@@ -118,7 +118,7 @@ func TestWorkerPool(t *testing.T) {
 
 		pool, err := NewWorkerPool(tasks, 5, metrics)
 		require.NoError(t, err)
-		pool.log = slog.New(slog.NewTextHandler(io.Discard))
+		pool.log = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
 
 		pool.Start(ctx)
 		require.Equal(t, int64(2), metricCount)

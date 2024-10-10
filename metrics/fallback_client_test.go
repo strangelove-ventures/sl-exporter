@@ -27,7 +27,7 @@ func (m *mockClientMetrics) IncAPIError(host url.URL, errMsg string) {
 	m.GotErrMsg = errMsg
 }
 
-var nopLogger = slog.New(slog.NewTextHandler(io.Discard))
+var nopLogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
 
 func TestFallbackClient_Get(t *testing.T) {
 	urls := []url.URL{
