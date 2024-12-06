@@ -13,18 +13,23 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 	"github.com/strangelove-ventures/sl-exporter/cosmos"
 	"github.com/strangelove-ventures/sl-exporter/metrics"
 	"golang.org/x/exp/slog"
 	"golang.org/x/sync/errgroup"
 )
 
-const collector = "sl_exporter"
-
 var httpClient = &http.Client{
 	Timeout: 30 * time.Second,
 }
+
+var httpReqs = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "sl_exporter",
+		Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
+	},
+	[]string{"code", "method"},
+)
 
 func Execute() {
 	var cfg Config
@@ -54,7 +59,7 @@ func Execute() {
 
 	// Initialize prometheus registry
 	registry := prometheus.NewRegistry()
-	registry.MustRegister(version.NewCollector(collector))
+	registry.MustRegister(httpReqs)
 
 	// Register static metrics
 	registry.MustRegister(metrics.BuildStatic(cfg.Static.Gauges)...)
