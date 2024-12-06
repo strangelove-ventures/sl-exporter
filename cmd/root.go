@@ -25,12 +25,13 @@ var httpClient = &http.Client{
 
 var httpReqs = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
-		Name: "sl_exporter",
+		Name: "sl_exporter_total",
 		Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
 	},
 	[]string{"code", "method"},
 )
 
+// Execute is the main entry point for the application.
 func Execute() {
 	var cfg Config
 
