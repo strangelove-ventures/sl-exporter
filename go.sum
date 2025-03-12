@@ -15,8 +15,8 @@ github.com/cli/safeexec v1.0.1/go.mod h1:Z/D4tTN8Vs5gXYHDCbaM1S/anmEDnJb1iW0+EJ5
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cosmos/btcutil v1.0.5 h1:t+ZFcX77LpKtDBhjucvnOH8C2l2ioGsBNEQ3jef8xFk=
 github.com/cosmos/btcutil v1.0.5/go.mod h1:IyB7iuqZMJlthe2tkIFL33xPyzbFYP0XVdS8P5lUPis=
-github.com/cosmos/cosmos-sdk v0.50.12 h1:WizeD4K74737Gq46/f9fq+WjyZ1cP/1bXwVR3dvyp0g=
-github.com/cosmos/cosmos-sdk v0.50.12/go.mod h1:hrWEFMU1eoXqLJeE6VVESpJDQH67FS1nnMrQIjO2daw=
+github.com/cosmos/cosmos-sdk v0.50.13 h1:xQ32hhzVy7agEe7behMdZN0ezWhPss3KoLZsF9KoBnw=
+github.com/cosmos/cosmos-sdk v0.50.13/go.mod h1:hrWEFMU1eoXqLJeE6VVESpJDQH67FS1nnMrQIjO2daw=
 github.com/cosmtrek/air v1.43.0 h1:Ii/uBrrW/28Tj36Bd1zvI7gAtiYOGV0qVUPlW9wU3uM=
 github.com/cosmtrek/air v1.43.0/go.mod h1:KpAB0/hED+9nxpEG9jBLrykdDW5Gbhy8T8bfl/sZzFw=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
