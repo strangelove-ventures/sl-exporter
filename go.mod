@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/cosmos/cosmos-sdk v0.50.13
 	github.com/cosmtrek/air v1.43.0
-	github.com/prometheus/client_golang v1.21.0
+	github.com/prometheus/client_golang v1.21.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/goleak v1.3.0
