@@ -1,6 +1,8 @@
 module github.com/strangelove-ventures/sl-exporter
 
-go 1.23
+go 1.23.0
+
+toolchain go1.24.1
 
 require (
 	github.com/cosmos/cosmos-sdk v0.50.13
@@ -10,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/goleak v1.3.0
 	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 )
 
 require (
